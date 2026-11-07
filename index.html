@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Vienna Smart City — an academic presentation of integrated urban mobility, circular environment, open governance, social housing and ISO 37120/37122 performance indicators. Master 1 Smart Cities Engineering, Yahia Farès University of Médéa." />
+  <meta name="theme-color" content="#050d1f" />
+  <meta name="color-scheme" content="dark" />
+  <title>Vienna Smart City</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%23050d1f'/%3E%3Cpath d='M8 40h32M12 40V26h7v14M21 40V14l4-6 4 6v26M31 40V22h6v18' fill='none' stroke='%2362d0ff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='34' cy='15' r='2.2' fill='%23ff3b4e'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="style.css?v=16" />
+  <script>
+    document.documentElement.classList.add('js');
+    try {
+      if (localStorage.getItem('vsc-lang') === 'ar') {
+        document.documentElement.lang = 'ar';
+        document.documentElement.dir = 'rtl';
+      }
+    } catch (_) { /* storage may be unavailable */ }
+  </script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ============================================================
+     SVG ICON SPRITE
+     ============================================================ -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-skyline" viewBox="0 0 48 48">
+    <path d="M6 41h36" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M10 41V27h7v14M21 41V15l4-6 4 6v26M31 41V23h7v18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="25" cy="24" r="2.1" fill="currentColor"/>
+    <path d="M34.5 23v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="34.5" cy="15.5" r="1.9" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-play" viewBox="0 0 24 24"><path d="M8 5.2 19 12 8 18.8V5.2Z" fill="currentColor"/></symbol>
+  <symbol id="ic-arrow" viewBox="0 0 24 24">
+    <path d="M4.5 12h14.4M13.2 6.2l5.8 5.8-5.8 5.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24">
+    <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-expand" viewBox="0 0 24 24">
+    <path d="M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-collapse" viewBox="0 0 24 24">
+    <path d="M4 9h5V4M20 9h-5V4M20 15h-5v5M4 15h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-pin" viewBox="0 0 24 24">
+    <path d="M12 21s7-6.2 7-11.1a7 7 0 1 0-14 0C5 14.8 12 21 12 21Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    <circle cx="12" cy="9.8" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="ic-leaf" viewBox="0 0 24 24">
+    <path d="M20.5 3.5C13 3.5 6.5 6.8 5.2 13.4c-.5 2.6.5 5 2.4 6.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M4.2 21c1.6-6.4 6.4-10.9 13-12.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M20.5 3.5c.9 6.6-1.5 12-6.3 14.6-1.9 1-3.9 1.4-5.6 1.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-tram" viewBox="0 0 24 24">
+    <rect x="5" y="3.5" width="14" height="13.5" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M5 10.5h14M8.5 3.5 6.8 1.8M15.5 3.5l1.7-1.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <circle cx="9" cy="14" r="1.2" fill="currentColor"/><circle cx="15" cy="14" r="1.2" fill="currentColor"/>
+    <path d="M8 17l-2 3.5M16 17l2 3.5M7 20.5h10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-bike" viewBox="0 0 24 24">
+    <circle cx="5.5" cy="17" r="3.3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <circle cx="18.5" cy="17" r="3.3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="m8.2 17 3.3-6.2 3.1 6.2H8.2Zm3.3-6.2h4.3M10.5 8.5h3.2M15.8 10.8 18.5 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-hub" viewBox="0 0 24 24">
+    <circle cx="12" cy="4.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <circle cx="5" cy="18.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <circle cx="19" cy="18.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M10.3 6.3 6.3 16.5M13.7 6.3l4 10.2M7.2 18.5h9.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    <circle cx="12" cy="12.2" r="1.5" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-bolt" viewBox="0 0 24 24">
+    <path d="M13.4 2 5.8 13.2h5.1L10 22l7.9-11.6h-5.2L13.4 2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-recycle" viewBox="0 0 24 24">
+    <path d="m7.3 6.2 2.2-3.5c.6-1 1.9-1 2.5 0l2.1 3.4M17.8 8.5l2.1 3.4c.6 1 0 2.2-1.2 2.2h-4.1M11.1 19.8H6.8c-1.2 0-1.8-1.3-1.2-2.2l2-3.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m9.5 6.1 1.2 2.2M18.2 13.9l-2.4.1M7.6 14.4l-2.3.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-droplet" viewBox="0 0 24 24">
+    <path d="M12 2.8s6.6 7.2 6.6 11.6a6.6 6.6 0 0 1-13.2 0C5.4 10 12 2.8 12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M9.2 14.6a2.9 2.9 0 0 0 2.9 2.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-sun" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-bin" viewBox="0 0 24 24">
+    <path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 10.5v6M14 10.5v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-data" viewBox="0 0 24 24">
+    <ellipse cx="12" cy="5.6" rx="7.4" ry="2.9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M4.6 5.6v12.8c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9V5.6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M4.6 12c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="ic-vote" viewBox="0 0 24 24">
+    <path d="M4.5 12.5 12 20l7.5-7.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M7 5h10v6H7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="m9.5 8 1.7 1.7 3.3-3.3M4 20.5h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-eye" viewBox="0 0 24 24">
+    <path d="M2.5 12S6 6.3 12 6.3 21.5 12 21.5 12 18 17.7 12 17.7 2.5 12 2.5 12Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="ic-bot" viewBox="0 0 24 24">
+    <rect x="4.5" y="7.5" width="15" height="12" rx="4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M12 7.5V4.2M9.5 13h.01M14.5 13h.01M9 16.2c1.8 1.2 4.2 1.2 6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+    <circle cx="12" cy="3.6" r="1.4" fill="currentColor"/>
+  </symbol>
+  <symbol id="ic-home" viewBox="0 0 24 24">
+    <path d="M3.6 10.8 12 3.4l8.4 7.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M5.6 9.6V20h12.8V9.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M9.8 20v-5.4h4.4V20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-hospital" viewBox="0 0 24 24">
+    <path d="M4.5 20V7.5h15V20M3 20h18M9 20v-4h6v4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M12 9v5M9.5 11.5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-walk" viewBox="0 0 24 24">
+    <circle cx="13.2" cy="4.2" r="2.1" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="m12.5 7.5-2.2 5.1 2.4 2.2-.9 5.4M10.3 12.6 7.2 15M14.5 10.2l3 3M12.7 14.8l3.1 5.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24">
+    <path d="m5 12.6 4.6 4.6L19.4 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" fill="currentColor"/></symbol>
+  <symbol id="ic-shield" viewBox="0 0 24 24">
+    <path d="M12 2.8 20 6v5.5c0 4.7-3.3 8-8 9.7-4.7-1.7-8-5-8-9.7V6l8-3.2Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="m8.7 12 2.2 2.2 4.4-4.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-layers" viewBox="0 0 24 24">
+    <path d="m12 3 9 5-9 5-9-5 9-5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="m3.5 12 8.5 4.7 8.5-4.7M3.5 16l8.5 4.7 8.5-4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-map" viewBox="0 0 24 24">
+    <path d="m3.5 5.5 5.3-2 6.4 2 5.3-2v15l-5.3 2-6.4-2-5.3 2v-15Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M8.8 3.5v15M15.2 5.5v15" fill="none" stroke="currentColor" stroke-width="1.7"/>
+  </symbol>
+  <symbol id="ic-external" viewBox="0 0 24 24">
+    <path d="M13.5 4.5H20v6.5M20 4.5l-8.4 8.4M18 14.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="ic-globe" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M3.4 12h17.2M12 3.4c2.4 2.4 3.7 5.4 3.7 8.6S14.4 18.2 12 20.6c-2.4-2.4-3.7-5.4-3.7-8.6S9.6 5.8 12 3.4Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </symbol>
+  <symbol id="ic-zoom-in" viewBox="0 0 24 24">
+    <circle cx="10.6" cy="10.6" r="6.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+    <path d="M15.5 15.5 21 21M10.6 7.6v6M7.6 10.6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-pda" viewBox="0 0 24 24">
+    <path d="M4 19.5h16M6 19.5V8.8l6-4.3 6 4.3v10.7M9.5 19.5v-5.2h5v5.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<!-- Scroll progress -->
+<div class="scroll-progress" aria-hidden="true"><span id="scrollProgress"></span></div>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<header class="nav" id="siteNav">
+  <div class="nav__inner container">
+    <a class="brand" href="#home" aria-label="Vienna Smart City — home">
+      <span class="brand__mark"><svg class="icon"><use href="#ic-skyline"/></svg></span>
+      <span class="brand__text">Vienna <em>Smart City</em></span>
+    </a>
+
+    <nav class="nav__links" id="navLinks" aria-label="Primary navigation">
+      <a class="nav__link is-active" href="#home" aria-current="page">Home</a>
+      <a class="nav__link" href="#about">About</a>
+      <a class="nav__link" href="#mobility">Mobility</a>
+      <a class="nav__link" href="#environment">Environment</a>
+      <a class="nav__link" href="#governance">Governance</a>
+      <a class="nav__link" href="#living">Living</a>
+      <a class="nav__link" href="#impact">Impact</a>
+    </nav>
+
+    <div class="nav__actions">
+      <button class="lang-switch" id="langSwitch" type="button" data-active="en" aria-label="Switch to Arabic · العربية / EN" title="Switch language">
+        <svg class="icon lang-switch__globe" aria-hidden="true"><use href="#ic-globe"/></svg>
+        <span class="lang-switch__opt" data-lang="ar" lang="ar" dir="rtl">العربية</span>
+        <span class="lang-switch__sep" aria-hidden="true">/</span>
+        <span class="lang-switch__opt" data-lang="en">EN</span>
+      </button>
+      <a class="btn btn--ghost btn--nav" href="#academic">
+        <svg class="icon"><use href="#ic-layers"/></svg>
+        <span>Project card</span>
+      </a>
+      <button class="icon-btn nav__toggle" id="navToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="navLinks">
+        <span class="nav__toggle-lines" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+  <section class="hero" id="home">
+    <div class="hero__bg" aria-hidden="true">
+      <img src="assets/hero-vienna.jpg" alt="" fetchpriority="high" decoding="async"
+           data-fallback="https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&amp;fit=crop&amp;w=2400&amp;q=82" />
+      <div class="hero__veil"></div>
+      <div class="hero__grid"></div>
+      <span class="hero__orb hero__orb--cyan"></span>
+      <span class="hero__orb hero__orb--red"></span>
+    </div>
+
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <p class="eyebrow-pill reveal">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          Smart City Wien · Academic Study 2026
+        </p>
+
+        <h1 class="hero__title reveal" style="--delay:80ms">
+          <span class="hero__title-line">Vienna</span>
+          <span class="hero__title-line hero__title-line--accent">Smart City</span>
+        </h1>
+
+        <p class="hero__tagline reveal" style="--delay:160ms">Innovation · Sustainability · Quality of Life</p>
+
+        <p class="hero__intro reveal" style="--delay:240ms">
+          An integrated urban system where multimodal mobility, circular energy,
+          open governance and social housing are engineered as one public infrastructure.
+        </p>
+
+        <div class="hero__actions reveal" style="--delay:320ms">
+          <button class="btn btn--primary btn--lg" id="watch-video-btn" type="button">
+            <span class="btn__play"><svg class="icon"><use href="#ic-play"/></svg></span>
+            Watch the video
+          </button>
+          <a class="btn btn--glass btn--lg" href="#about">
+            Explore the framework
+            <svg class="icon"><use href="#ic-arrow"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="hero__metrics reveal" style="--delay:420ms" aria-label="Vienna at a glance">
+        <div class="hero-metric">
+          <span class="hero-metric__value counter" data-target="2.0" data-decimals="1" data-prefix="~" data-suffix="M">~2.0M</span>
+          <span class="hero-metric__label">Residents</span>
+          <span class="hero-metric__note">23 municipal districts</span>
+        </div>
+        <div class="hero-metric">
+          <span class="hero-metric__value counter" data-target="414.8" data-decimals="1" data-suffix=" km²">414.8 km²</span>
+          <span class="hero-metric__label">Urban area</span>
+          <span class="hero-metric__note">On the Danube</span>
+        </div>
+        <div class="hero-metric">
+          <span class="hero-metric__value counter" data-target="73" data-suffix="%">73%</span>
+          <span class="hero-metric__label">Sustainable modal split</span>
+          <span class="hero-metric__note">Transit · cycling · walking</span>
+        </div>
+        <div class="hero-metric">
+          <span class="hero-metric__value counter" data-target="2040" data-plain="1">2040</span>
+          <span class="hero-metric__label">Climate neutrality</span>
+          <span class="hero-metric__note">Municipal target horizon</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__coordinate" aria-hidden="true">
+      <span>48.2082° N</span>
+      <span class="hero__coordinate-rule"></span>
+      <span>16.3738° E</span>
+    </div>
+    <div class="hero__stamp" aria-hidden="true">
+      <span>OUPTI · SCF</span>
+      <span>2026 / 2027</span>
+    </div>
+    <a class="scroll-cue" href="#about" aria-label="Scroll to About Vienna">
+      <span class="scroll-cue__line"></span>
+      <span class="scroll-cue__text">Scroll</span>
+    </a>
+  </section>
+
+  <!-- ============================================================
+       01 — ABOUT VIENNA
+       ============================================================ -->
+  <section class="section" id="about" aria-labelledby="aboutTitle">
+    <div class="container">
+      <header class="section-head reveal">
+        <p class="eyebrow"><span class="eyebrow__line"></span>01 — About Vienna</p>
+        <h2 id="aboutTitle">A capital engineered for <span class="text-gradient">livability</span>.</h2>
+        <p class="section-lead">
+          Vienna combines a compact metropolitan footprint with one of the world’s most
+          mature public infrastructures. Its Smart City framework treats climate action,
+          social cohesion and digital services as a single urban operating system.
+        </p>
+      </header>
+
+      <div class="about-grid">
+        <div class="about-copy reveal">
+          <p class="about-copy__lead">
+            Two million residents. Four hundred and fourteen square kilometres. One
+            integrated strategy for a climate-neutral, socially inclusive city by 2040.
+          </p>
+          <p class="about-copy__body">
+            The municipal approach is deliberately systemic: housing policy supports
+            mobility, public space absorbs heat and stormwater, open data improves
+            service delivery, and district energy converts residual waste into heat.
+            Each policy domain is measured, published and adjusted against shared
+            indicators.
+          </p>
+
+          <div class="metric-grid">
+            <article class="metric-card glow-card reveal" style="--delay:60ms">
+              <span class="metric-card__icon"><svg class="icon"><use href="#ic-skyline"/></svg></span>
+              <p class="metric-card__label">Population</p>
+              <p class="metric-card__value"><span class="counter" data-target="2.0" data-decimals="1" data-prefix="~" data-suffix="M">~2.0M</span></p>
+              <p class="metric-card__note">Residents within the municipal boundary</p>
+            </article>
+
+            <article class="metric-card glow-card reveal" style="--delay:120ms">
+              <span class="metric-card__icon"><svg class="icon"><use href="#ic-map"/></svg></span>
+              <p class="metric-card__label">Area</p>
+              <p class="metric-card__value"><span class="counter" data-target="414.8" data-decimals="1" data-suffix=" km²">414.8 km²</span></p>
+              <p class="metric-card__note">Compact, polycentric urban territory</p>
+            </article>
+
+            <article class="metric-card glow-card reveal" style="--delay:180ms">
+              <span class="metric-card__icon metric-card__icon--green"><svg class="icon"><use href="#ic-leaf"/></svg></span>
+              <p class="metric-card__label">Urban Vision</p>
+              <p class="metric-card__value">Climate Neutrality 2040</p>
+              <p class="metric-card__note">Smart City Wien strategic horizon</p>
+            </article>
+
+            <article class="metric-card glow-card reveal" style="--delay:240ms">
+              <span class="metric-card__icon metric-card__icon--gold"><svg class="icon"><use href="#ic-star"/></svg></span>
+              <p class="metric-card__label">Livability</p>
+              <p class="metric-card__value">High Livability Index</p>
+              <p class="metric-card__note">#1 Mercer Quality of Living</p>
+            </article>
+          </div>
+
+          <p class="about-copy__source">
+            <svg class="icon"><use href="#ic-shield"/></svg>
+            Baseline figures presented for academic analysis; current values are
+            maintained by the City of Vienna and international indicator frameworks.
+          </p>
+        </div>
+
+        <aside class="planning-hub glass reveal" id="planningHub" style="--delay:140ms" aria-labelledby="planningTitle">
+          <header class="planning-hub__head">
+            <div>
+              <p class="planning-hub__kicker"><svg class="icon"><use href="#ic-layers"/></svg> Vienna Urban Atlas</p>
+              <h3 id="planningTitle">The city in plan</h3>
+            </div>
+            <span class="coordinate-chip">48.2082° N · 16.3738° E</span>
+          </header>
+
+          <div class="planning-tabs" role="tablist" aria-label="Urban planning layers">
+            <button class="planning-tab is-active" id="tab-pdau" type="button" role="tab" aria-selected="true" aria-controls="panel-pdau" tabindex="0">
+              <span class="planning-tab__code">PDAU</span>
+              <span class="planning-tab__label">STEP 2035</span>
+            </button>
+            <button class="planning-tab" id="tab-pos" type="button" role="tab" aria-selected="false" aria-controls="panel-pos" tabindex="-1">
+              <span class="planning-tab__code">POS</span>
+              <span class="planning-tab__label">Zoning</span>
+            </button>
+            <button class="planning-tab" id="tab-map" type="button" role="tab" aria-selected="false" aria-controls="panel-map" tabindex="-1">
+              <span class="planning-tab__code">GEO</span>
+              <span class="planning-tab__label">Satellite</span>
+            </button>
+          </div>
+
+          <div class="planning-panels">
+            <section class="plan-panel is-active" id="panel-pdau" role="tabpanel" aria-labelledby="tab-pdau" tabindex="0">
+              <div class="plan-panel__bar">
+                <div>
+                  <p class="plan-panel__kicker">Wien-Plan · Master Development</p>
+                  <h4>STEP 2035 — Master Development Plan</h4>
+                </div>
+                <button class="plan-fs" type="button" data-fs-target="#panel-pdau" aria-label="Fullscreen master plan">
+                  <svg class="icon" aria-hidden="true"><use href="#ic-expand"/></svg>
+                  <span>Fullscreen</span>
+                </button>
+              </div>
+
+              <div class="plan-badge">
+                <svg class="icon" aria-hidden="true"><use href="#ic-layers"/></svg>
+                <span data-i18n="hub.badgeStep">Stadtentwicklungsplan (STEP 2035) — Strategic Municipal Master Plan</span>
+              </div>
+
+              <figure class="plan-figure plan-figure--img" data-lightbox-type="image" data-lightbox-src="assets/plan-step2035.jpg" data-lightbox-alt="Vienna Stadtentwicklungsplan STEP 2035 master development map" tabindex="0" role="button">
+                <img class="plan-img" src="assets/plan-step2035.jpg" alt="Authentic Vienna STEP 2035 (Wien-Plan) spatial development map showing polycentric development axes, urban structure and green corridors" loading="lazy" decoding="async">
+                <figcaption class="plan-caption">
+                  <span class="plan-caption__source" data-i18n="hub.sourceStep">Source: City of Vienna — Wien-Plan · Stadtentwicklungsplan 2035 (MA 18)</span>
+                  <span class="plan-caption__zoom" data-i18n="hub.clickZoom">Click image for fullscreen zoom</span>
+                </figcaption>
+              </figure>
+
+              <ul class="plan-facts">
+                <li><strong>23</strong><span>Districts</span></li>
+                <li><strong>2040</strong><span>Climate neutral</span></li>
+                <li><strong>5</strong><span>Strategic axes</span></li>
+              </ul>
+            </section>
+
+            <section class="plan-panel" id="panel-pos" role="tabpanel" aria-labelledby="tab-pos" tabindex="0" hidden>
+              <div class="plan-panel__bar">
+                <div>
+                  <p class="plan-panel__kicker">Flächenwidmungsplan · Land use</p>
+                  <h4>Detailed Land Use &amp; Zoning</h4>
+                </div>
+                <button class="plan-fs" type="button" data-fs-target="#panel-pos" aria-label="Fullscreen zoning plan">
+                  <svg class="icon" aria-hidden="true"><use href="#ic-expand"/></svg>
+                  <span>Fullscreen</span>
+                </button>
+              </div>
+
+              <div class="plan-badge">
+                <svg class="icon" aria-hidden="true"><use href="#ic-layers"/></svg>
+                <span data-i18n="hub.badgeZoning">Flächenwidmungs- und Bebauungsplan (MA 21) — Parcel-level Zoning</span>
+              </div>
+
+              <figure class="plan-figure plan-figure--img" data-lightbox-type="image" data-lightbox-src="assets/plan-zoning-pos.jpg" data-lightbox-alt="Vienna Flächenwidmungs- und Bebauungsplan parcel-level zoning extract" tabindex="0" role="button">
+                <div class="plan-img-frame">
+                  <img class="plan-img" src="assets/plan-zoning-pos.jpg" alt="Authentic extract of the Vienna municipal zoning map (Flächenwidmungsplan, MA 21) showing parcel allocations, land-use colours and building regulations" loading="lazy" decoding="async">
+                  <img class="plan-legend-img" src="assets/legend-zoning.png" alt="Zoning legend of the Vienna Flächenwidmungsplan" loading="lazy" decoding="async">
+                </div>
+                <figcaption class="plan-caption">
+                  <span class="plan-caption__source" data-i18n="hub.sourceZoning">Source: City of Vienna open data — Flächenwidmungs- und Bebauungsplan (MA 21), GeoServer WMS extract</span>
+                  <span class="plan-caption__zoom" data-i18n="hub.clickZoom">Click image for fullscreen zoom</span>
+                </figcaption>
+              </figure>
+
+              <ul class="plan-facts">
+                <li><strong>5</strong><span>Zoning classes</span></li>
+                <li><strong>62%</strong><span>Mixed-use share</span></li>
+                <li><strong>53%</strong><span>Green space</span></li>
+              </ul>
+            </section>
+
+            <section class="plan-panel plan-panel--map" id="panel-map" role="tabpanel" aria-labelledby="tab-map" tabindex="0" hidden>
+              <div class="plan-panel__bar">
+                <div>
+                  <p class="plan-panel__kicker">Esri World Imagery · Leaflet</p>
+                  <h4 data-i18n="hub.satTitle">Live Satellite &amp; Transit Map</h4>
+                </div>
+                <button class="plan-fs" type="button" data-fs-target="#panel-map" aria-label="Fullscreen interactive map">
+                  <svg class="icon" aria-hidden="true"><use href="#ic-expand"/></svg>
+                  <span>Fullscreen</span>
+                </button>
+              </div>
+
+              <div class="plan-badge">
+                <svg class="icon" aria-hidden="true"><use href="#ic-layers"/></svg>
+                <span data-i18n="hub.badgeSat">Satellite imagery · Esri World Imagery — Zoomable Landmark Layer</span>
+              </div>
+
+              <div class="map-toolbar" role="group" aria-label="Map landmark toggles">
+                <button class="map-toggle is-on" type="button" data-marker="spittelau" aria-pressed="true">
+                  <i class="map-legend__dot map-legend__dot--energy"></i><span data-i18n="hub.mkSpittelau">Spittelau Plant</span>
+                </button>
+                <button class="map-toggle is-on" type="button" data-marker="hbf" aria-pressed="true">
+                  <i class="map-legend__dot map-legend__dot--mobility"></i><span data-i18n="hub.mkHbf">Central Station</span>
+                </button>
+                <button class="map-toggle is-on" type="button" data-marker="aspern" aria-pressed="true">
+                  <i class="map-legend__dot map-legend__dot--living"></i><span data-i18n="hub.mkAspern">Aspern Seestadt</span>
+                </button>
+              </div>
+
+              <div class="plan-map" id="viennaMap" role="application" aria-label="Interactive satellite map of Vienna with smart city points of interest"></div>
+
+              <div class="plan-map__foot">
+                <div class="map-legend">
+                  <span><i class="map-legend__dot map-legend__dot--energy"></i>Energy</span>
+                  <span><i class="map-legend__dot map-legend__dot--mobility"></i>Mobility</span>
+                  <span><i class="map-legend__dot map-legend__dot--living"></i>Living</span>
+                  <span><i class="map-legend__dot map-legend__dot--governance"></i>Governance</span>
+                </div>
+                <span class="plan-map__hint">Click the map for presentation view</span>
+              </div>
+            </section>
+          </div>
+
+          <footer class="planning-hub__foot">
+            <span>Interactive planning layers · Vienna 48.2082° N</span>
+            <span class="planning-hub__stamp">PDAU · POS · GIS</span>
+          </footer>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 — SMART MOBILITY
+       ============================================================ -->
+  <section class="section section--alt" id="mobility" aria-labelledby="mobilityTitle">
+    <div class="container">
+      <header class="section-head section-head--center reveal">
+        <p class="eyebrow eyebrow--center"><span class="eyebrow__line"></span>02 — Smart Mobility<span class="eyebrow__line"></span></p>
+        <h2 id="mobilityTitle">One network. <span class="text-gradient">Every mode.</span></h2>
+        <p class="section-lead">
+          A single integrated mobility system where trams, metro, bikes, shared cars and
+          walking are coordinated through one fare, one app and one real-time data layer.
+        </p>
+      </header>
+
+      <div class="constellation constellation--mobility">
+        <article class="orbit-card glow-card reveal" style="--delay:60ms">
+          <div class="orbit-card__media">
+            <img src="smart_mobility_pics/img1.jpg" alt="Modern Wiener Linien tram on a Vienna street" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d1/Tram_der_Wiener_Linien_%283731365267%29.jpg/1280px-Tram_der_Wiener_Linien_%283731365267%29.jpg" />
+            <span class="orbit-card__index">01</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-tram"/></svg> Rail</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Wiener Linien Electric Tramway</h3>
+            <ul class="spec-badges">
+              <li><span>Tech</span><strong>100% Green Electric Traction</strong></li>
+              <li><span>Capacity</span><strong>280+ Passengers per unit</strong></li>
+              <li><span>Infrastructure</span><strong>28 Lines · 500+ km Network</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:120ms">
+          <div class="orbit-card__media">
+            <img src="smart_mobility_pics/img2.jpg" alt="WienMobil Rad bike-sharing station in Vienna" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/WienMobil_Rad_station_Schloss_Sch%C3%B6nbrunn.jpg/1280px-WienMobil_Rad_station_Schloss_Sch%C3%B6nbrunn.jpg" />
+            <span class="orbit-card__index">02</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-bike"/></svg> Active</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>WienMobil Smart Bike Sharing</h3>
+            <ul class="spec-badges">
+              <li><span>Fleet</span><strong>3,000+ Smart GPS-tracked Bikes</strong></li>
+              <li><span>Integration</span><strong>Digital Single-App Unlock</strong></li>
+              <li><span>Scope</span><strong>240+ Stations across all 23 districts</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <div class="constellation__hub reveal" style="--delay:200ms">
+          <article class="hub-card glass-strong">
+            <div class="hub-card__head">
+              <div>
+                <p class="hub-card__kicker"><svg class="icon"><use href="#ic-hub"/></svg> Integrated Platform</p>
+                <h3>Integrated Multimodal Urban Mobility</h3>
+              </div>
+              <div class="gauge" style="--value:73" aria-label="73 percent sustainable modal split">
+                <span class="gauge__ring" aria-hidden="true"></span>
+                <span class="gauge__text"><strong>73%</strong><small>modal split</small></span>
+              </div>
+            </div>
+
+            <p class="hub-card__text">
+              Vienna makes public transport the default choice. The <strong>365€ annual
+              transit pass</strong> provides unlimited city travel for less than one euro
+              per day. <strong>WienMobil</strong> connects metro, tram, bus, bike and car
+              sharing in a single account, while real-time IoT arrival data keeps every
+              interchange predictable. Electrification of the tram and bus fleet closes
+              the remaining emissions gap.
+            </p>
+
+            <div class="hub-card__stats">
+              <div><strong>365€</strong><span>Annual transit pass</span></div>
+              <div><strong>73%</strong><span>Transit · bike · walk</span></div>
+              <div><strong>1 app</strong><span>WienMobil integration</span></div>
+              <div><strong>100%</strong><span>Electric tram traction</span></div>
+            </div>
+
+            <a class="text-link" href="#impact">
+              Review mobility indicators
+              <svg class="icon"><use href="#ic-arrow"/></svg>
+            </a>
+          </article>
+        </div>
+
+        <article class="orbit-card glow-card reveal" style="--delay:180ms">
+          <div class="orbit-card__media">
+            <img src="smart_mobility_pics/img3.jpg" alt="Vienna U-Bahn train arriving at a station" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e9/Vienna_U-Bahn_-_U4_metro_line-Type_U_arriving_ar_16to9_PNr%C2%B01174.jpg/1280px-Vienna_U-Bahn_-_U4_metro_line-Type_U_arriving_ar_16to9_PNr%C2%B01174.jpg" />
+            <span class="orbit-card__index">03</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-hub"/></svg> Interchange</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Multimodal Transit Hubs (U-Bahn / Tram)</h3>
+            <ul class="spec-badges">
+              <li><span>Synchronization</span><strong>Real-time IoT arrival matrix</strong></li>
+              <li><span>Intermodal Transfer</span><strong>&lt; 3 min interchange time</strong></li>
+              <li><span>Coverage</span><strong>95% of citizens within 300m of a transit stop</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:240ms">
+          <div class="orbit-card__media">
+            <img src="smart_mobility_pics/img4.jpg" alt="Electric vehicle connected to a public charging point" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">04</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-bolt"/></svg> Electric</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>TANKE Public E-Charging Infrastructure</h3>
+            <ul class="spec-badges">
+              <li><span>Charging Network</span><strong>1,000+ Public charging points</strong></li>
+              <li><span>Energy Source</span><strong>100% Certified renewable energy</strong></li>
+              <li><span>Mode</span><strong>E-Carsharing &amp; Smart Fleet Charging</strong></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 — SMART ENVIRONMENT
+       ============================================================ -->
+  <section class="section section--environment" id="environment" aria-labelledby="environmentTitle">
+    <div class="container">
+      <header class="section-head section-head--center reveal">
+        <p class="eyebrow eyebrow--center"><span class="eyebrow__line"></span>03 — Smart Environment<span class="eyebrow__line"></span></p>
+        <h2 id="environmentTitle">A circular city, <span class="text-gradient text-gradient--green">powered by its own resources</span>.</h2>
+        <p class="section-lead">
+          Residual waste becomes district heat, the Danube floodplain becomes climate
+          infrastructure, and more than half the city remains green.
+        </p>
+      </header>
+
+      <div class="constellation constellation--environment">
+        <article class="orbit-card glow-card reveal" style="--delay:60ms">
+          <div class="orbit-card__media">
+            <img src="smart_environment_pics/img1.jpg" alt="The Spittelau waste-to-energy plant in Vienna" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2a/Austria-03013_-_Spittelau_%2832809800771%29.jpg/1280px-Austria-03013_-_Spittelau_%2832809800771%29.jpg" />
+            <span class="orbit-card__index">01</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-recycle"/></svg> Circular</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Spittelau Waste-to-Energy Plant</h3>
+            <ul class="spec-badges">
+              <li><span>Process</span><strong>Multi-stage flue gas cleaning</strong></li>
+              <li><span>Output</span><strong>Circular thermal heat recovery</strong></li>
+              <li><span>Network</span><strong>Fernwärme Wien district heating</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:120ms">
+          <div class="orbit-card__media">
+            <img src="smart_environment_pics/img2.jpg" alt="Green park landscape on the Donauinsel in Vienna" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Wien_22_Donauinsel_h.jpg/1280px-Wien_22_Donauinsel_h.jpg" />
+            <span class="orbit-card__index">02</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-droplet"/></svg> Blue-green</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Donauinsel &amp; Urban Wetlands</h3>
+            <ul class="spec-badges">
+              <li><span>Function</span><strong>Natural flood defence system</strong></li>
+              <li><span>Ecology</span><strong>Biodiversity &amp; cooling corridor</strong></li>
+              <li><span>Scale</span><strong>21 km recreational island</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <div class="constellation__hub reveal" style="--delay:200ms">
+          <article class="hub-card glass-strong hub-card--green">
+            <div class="hub-card__head">
+              <div>
+                <p class="hub-card__kicker"><svg class="icon"><use href="#ic-leaf"/></svg> Circular Economy</p>
+                <h3>Waste-to-Energy &amp; District Heating</h3>
+              </div>
+              <div class="gauge gauge--green" style="--value:53" aria-label="53 percent urban green space">
+                <span class="gauge__ring" aria-hidden="true"></span>
+                <span class="gauge__text"><strong>53%</strong><small>green space</small></span>
+              </div>
+            </div>
+
+            <p class="hub-card__text">
+              Vienna treats residual waste as a thermal resource. <strong>Spittelau</strong>
+              recovers heat from non-recyclable waste and feeds it into the
+              <strong>Fernwärme Wien</strong> network, using multi-stage flue-gas cleaning
+              to meet strict emission limits. The <strong>Donauinsel</strong> and urban
+              wetlands provide flood protection and biodiversity, citizen-funded solar
+              plants expand renewable generation, and sensor-based waste routing closes
+              the material loop.
+            </p>
+
+            <div class="hub-card__stats">
+              <div><strong>&gt;50%</strong><span>Green urban space</span></div>
+              <div><strong>~40%</strong><span>District heating share</span></div>
+              <div><strong>3-stage</strong><span>Flue gas cleaning</span></div>
+              <div><strong>2040</strong><span>Climate neutral</span></div>
+            </div>
+
+            <a class="text-link text-link--green" href="#impact">
+              Review environmental indicators
+              <svg class="icon"><use href="#ic-arrow"/></svg>
+            </a>
+          </article>
+        </div>
+
+        <article class="orbit-card glow-card reveal" style="--delay:180ms">
+          <div class="orbit-card__media">
+            <img src="smart_environment_pics/img3.jpg" alt="Solar photovoltaic panels generating renewable electricity" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">03</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-sun"/></svg> Solar</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>City Solar Expansion Initiative</h3>
+            <ul class="spec-badges">
+              <li><span>Finance</span><strong>Citizen-funded PV plants</strong></li>
+              <li><span>Generation</span><strong>100% renewable electricity</strong></li>
+              <li><span>Grid</span><strong>Distributed urban generation</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:240ms">
+          <div class="orbit-card__media">
+            <img src="smart_environment_pics/img4.jpg" alt="Colour-coded waste separation bins for recycling" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">04</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-bin"/></svg> Waste</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Smart Waste Management &amp; Sensor Routing</h3>
+            <ul class="spec-badges">
+              <li><span>Sensing</span><strong>Fill-level sensor network</strong></li>
+              <li><span>Operations</span><strong>Dynamic route optimisation</strong></li>
+              <li><span>Model</span><strong>Circular material recovery</strong></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       04 — SMART GOVERNANCE
+       ============================================================ -->
+  <section class="section section--alt" id="governance" aria-labelledby="governanceTitle">
+    <div class="container">
+      <header class="section-head section-head--center reveal">
+        <p class="eyebrow eyebrow--center"><span class="eyebrow__line"></span>04 — Smart Governance<span class="eyebrow__line"></span></p>
+        <h2 id="governanceTitle">Government as an <span class="text-gradient">open platform</span>.</h2>
+        <p class="section-lead">
+          Open data, participatory budgeting and transparent performance reporting turn
+          municipal administration into a measurable public service.
+        </p>
+      </header>
+
+      <div class="constellation constellation--governance">
+        <article class="orbit-card glow-card reveal" style="--delay:60ms">
+          <div class="orbit-card__media">
+            <img src="smart_governance_pics/img1.jpg" alt="Analytics dashboard displaying municipal performance data" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">01</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-data"/></svg> Open Data</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>OGD Wien Open Data Platform</h3>
+            <ul class="spec-badges">
+              <li><span>Catalogue</span><strong>300+ municipal datasets</strong></li>
+              <li><span>Access</span><strong>Free REST APIs</strong></li>
+              <li><span>Format</span><strong>Machine-readable &amp; documented</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:120ms">
+          <div class="orbit-card__media">
+            <img src="smart_governance_pics/img2.jpg" alt="Citizen casting a ballot in a democratic vote" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">02</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-vote"/></svg> Participation</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Participatory Budgeting &amp; Digital Voting</h3>
+            <ul class="spec-badges">
+              <li><span>Input</span><strong>Citizen-generated proposals</strong></li>
+              <li><span>Identity</span><strong>Verified digital participation</strong></li>
+              <li><span>Scale</span><strong>District-level allocation</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <div class="constellation__hub reveal" style="--delay:200ms">
+          <article class="hub-card glass-strong hub-card--governance">
+            <div class="hub-card__head">
+              <div>
+                <p class="hub-card__kicker"><svg class="icon"><use href="#ic-eye"/></svg> Public Accountability</p>
+                <h3>Open, Participatory, Transparent Governance</h3>
+              </div>
+              <div class="gauge" style="--value:100" aria-label="100 percent open data access">
+                <span class="gauge__ring" aria-hidden="true"></span>
+                <span class="gauge__text"><strong>100%</strong><small>open access</small></span>
+              </div>
+            </div>
+
+            <p class="hub-card__text">
+              Vienna publishes municipal data as a public utility. <strong>OGD Wien</strong>
+              provides open, machine-readable datasets and APIs; participatory budgeting
+              and <strong>digital voting</strong> extend decision-making beyond election
+              day; transparency dashboards expose budgets, procurement and service
+              performance; and <strong>WienBot</strong> handles routine citizen requests
+              around the clock. Governance becomes traceable, measurable and responsive.
+            </p>
+
+            <div class="hub-card__stats">
+              <div><strong>300+</strong><span>Open datasets</span></div>
+              <div><strong>100%</strong><span>Open API access</span></div>
+              <div><strong>23</strong><span>Participating districts</span></div>
+              <div><strong>24/7</strong><span>Digital citizen service</span></div>
+            </div>
+
+            <a class="text-link" href="#impact">
+              Review governance indicators
+              <svg class="icon"><use href="#ic-arrow"/></svg>
+            </a>
+          </article>
+        </div>
+
+        <article class="orbit-card glow-card reveal" style="--delay:180ms">
+          <div class="orbit-card__media">
+            <img src="smart_governance_pics/img3.jpg" alt="Global data network visualised over the Earth at night" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">03</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-eye"/></svg> Transparency</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Municipal Transparency Dashboard</h3>
+            <ul class="spec-badges">
+              <li><span>Budget</span><strong>Open fiscal reporting</strong></li>
+              <li><span>Procurement</span><strong>Contract &amp; tender tracking</strong></li>
+              <li><span>Performance</span><strong>District service KPIs</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:240ms">
+          <div class="orbit-card__media">
+            <img src="smart_governance_pics/img4.jpg" alt="Citizens and staff using digital public services on laptops" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&amp;fit=crop&amp;w=1280&amp;q=80" />
+            <span class="orbit-card__index">04</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-bot"/></svg> Digital</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Digital Citizen Services &amp; WienBot</h3>
+            <ul class="spec-badges">
+              <li><span>Availability</span><strong>24/7 AI-assisted service</strong></li>
+              <li><span>Access</span><strong>Multilingual citizen interface</strong></li>
+              <li><span>Routing</span><strong>Intelligent request triage</strong></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       05 — SMART LIVING
+       ============================================================ -->
+  <section class="section section--living" id="living" aria-labelledby="livingTitle">
+    <div class="container">
+      <header class="section-head section-head--center reveal">
+        <p class="eyebrow eyebrow--center"><span class="eyebrow__line"></span>05 — Smart Living<span class="eyebrow__line"></span></p>
+        <h2 id="livingTitle">Quality of life, <span class="text-gradient text-gradient--gold">designed as infrastructure</span>.</h2>
+        <p class="section-lead">
+          Affordable housing, timber construction, universal healthcare and complete
+          neighbourhoods make Vienna’s liveability a structural outcome, not a slogan.
+        </p>
+      </header>
+
+      <div class="constellation constellation--living">
+        <article class="orbit-card glow-card reveal" style="--delay:60ms">
+          <div class="orbit-card__media">
+            <img src="smart_living_pics/img1.jpg" alt="A classic Vienna Gemeindebau social housing block" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/76/Gemeindebau_Gredlerstrasse_7_DSC_0247w.jpg/1280px-Gemeindebau_Gredlerstrasse_7_DSC_0247w.jpg" />
+            <span class="orbit-card__index">01</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-home"/></svg> Housing</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Gemeindebau Social Housing Model</h3>
+            <ul class="spec-badges">
+              <li><span>Stock</span><strong>220,000 municipal units</strong></li>
+              <li><span>Share</span><strong>62% affordable housing</strong></li>
+              <li><span>Model</span><strong>Mixed-income communities</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:120ms">
+          <div class="orbit-card__media">
+            <img src="smart_living_pics/img2.jpg" alt="The HoHo Wien timber high-rise building in Aspern" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/HoHo_Wien_Vienna_19-20_IMG_2225.jpg/1280px-HoHo_Wien_Vienna_19-20_IMG_2225.jpg" />
+            <span class="orbit-card__index">02</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-layers"/></svg> Timber</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>HoHo Aspern Timber Construction</h3>
+            <ul class="spec-badges">
+              <li><span>Height</span><strong>24 storeys · 84 m</strong></li>
+              <li><span>Structure</span><strong>75% timber construction</strong></li>
+              <li><span>Carbon</span><strong>Long-term carbon storage</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <div class="constellation__hub reveal" style="--delay:200ms">
+          <article class="hub-card glass-strong hub-card--living">
+            <div class="hub-card__head">
+              <div>
+                <p class="hub-card__kicker"><svg class="icon"><use href="#ic-home"/></svg> Social Infrastructure</p>
+                <h3>Affordable, Healthy &amp; High-Quality Living</h3>
+              </div>
+              <div class="gauge gauge--gold" style="--value:62" aria-label="62 percent affordable housing">
+                <span class="gauge__ring" aria-hidden="true"></span>
+                <span class="gauge__text"><strong>62%</strong><small>affordable</small></span>
+              </div>
+            </div>
+
+            <p class="hub-card__text">
+              Vienna’s quality of life is engineered through housing. More than six in ten
+              residents live in subsidised or municipal housing, including the historic
+              <strong>Gemeindebau</strong> and new cooperative districts. <strong>HoHo
+              Wien</strong> in Aspern demonstrates that timber high-rise construction can
+              store carbon at scale, while universal public healthcare and
+              <strong>15-minute neighbourhoods</strong> keep daily needs within walking
+              distance.
+            </p>
+
+            <div class="hub-card__stats">
+              <div><strong>62%</strong><span>Affordable housing</span></div>
+              <div><strong>220k</strong><span>Municipal flats</span></div>
+              <div><strong>100%</strong><span>Health coverage</span></div>
+              <div><strong>15 min</strong><span>To daily essentials</span></div>
+            </div>
+
+            <a class="text-link text-link--gold" href="#impact">
+              Review housing indicators
+              <svg class="icon"><use href="#ic-arrow"/></svg>
+            </a>
+          </article>
+        </div>
+
+        <article class="orbit-card glow-card reveal" style="--delay:180ms">
+          <div class="orbit-card__media">
+            <img src="smart_living_pics/img3.jpg" alt="Main entrance of the Vienna General Hospital" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Vienna_General_Hospital%2C_Main_Entrance.jpg/1280px-Vienna_General_Hospital%2C_Main_Entrance.jpg" />
+            <span class="orbit-card__index">03</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-hospital"/></svg> Health</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>Universal Public Healthcare</h3>
+            <ul class="spec-badges">
+              <li><span>Coverage</span><strong>100% public health insurance</strong></li>
+              <li><span>Network</span><strong>AKH Vienna &amp; district clinics</strong></li>
+              <li><span>Model</span><strong>Prevention &amp; digital triage</strong></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="orbit-card glow-card reveal" style="--delay:240ms">
+          <div class="orbit-card__media">
+            <img src="smart_living_pics/img4.jpg" alt="Modern walkable neighbourhood in Seestadt Aspern" loading="lazy" decoding="async" width="1280" height="800"
+                 data-fallback="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/22/Wien_22_Seestadt_Aspern_01.jpg/1280px-Wien_22_Seestadt_Aspern_01.jpg" />
+            <span class="orbit-card__index">04</span>
+            <span class="orbit-card__tag"><svg class="icon"><use href="#ic-walk"/></svg> Proximity</span>
+          </div>
+          <div class="orbit-card__body">
+            <h3>15-Minute Neighbourhoods &amp; Public Space</h3>
+            <ul class="spec-badges">
+              <li><span>Access</span><strong>Essentials within 15 minutes</strong></li>
+              <li><span>Design</span><strong>Walkable, mixed-use districts</strong></li>
+              <li><span>Social</span><strong>Schools, parks &amp; services nearby</strong></li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       06 — IMPACT / ISO KPI DASHBOARD
+       ============================================================ -->
+  <section class="section section--impact" id="impact" aria-labelledby="impactTitle">
+    <div class="container">
+      <header class="section-head reveal">
+        <p class="eyebrow"><span class="eyebrow__line"></span>06 — Impact &amp; Standards</p>
+        <h2 id="impactTitle">Measured against <span class="text-gradient">international benchmarks</span>.</h2>
+        <p class="section-lead">
+          Vienna’s performance is framed through the ISO 37120 and ISO 37122 indicator
+          families, complemented by global liveability and smart-city strategy rankings.
+        </p>
+      </header>
+
+      <div class="standards-grid">
+        <article class="standard-card glass reveal" style="--delay:60ms">
+          <div class="standard-card__top">
+            <span class="standard-card__badge">ISO 37120</span>
+            <span class="standard-card__status"><i></i>Aligned framework</span>
+          </div>
+          <h3>Sustainable cities and communities</h3>
+          <p>
+            Indicators for city services and quality of life across economy, education,
+            energy, environment, health, safety, shelter and transport.
+          </p>
+          <div class="standard-card__meter"><span style="--meter:92%"></span></div>
+          <div class="standard-card__foot"><span>Core indicator coverage</span><strong>92%</strong></div>
+        </article>
+
+        <article class="standard-card glass reveal" style="--delay:140ms">
+          <div class="standard-card__top">
+            <span class="standard-card__badge">ISO 37122</span>
+            <span class="standard-card__status"><i></i>Aligned framework</span>
+          </div>
+          <h3>Indicators for smart cities</h3>
+          <p>
+            Smart-city indicators covering connectivity, open data, intelligent transport,
+            digital public services and integrated urban management.
+          </p>
+          <div class="standard-card__meter"><span style="--meter:88%"></span></div>
+          <div class="standard-card__foot"><span>Smart indicator coverage</span><strong>88%</strong></div>
+        </article>
+
+        <article class="ranking-card glass reveal" style="--delay:220ms">
+          <p class="ranking-card__kicker"><svg class="icon"><use href="#ic-star"/></svg> Global Recognition</p>
+          <div class="ranking-row">
+            <span class="ranking-row__rank">#1</span>
+            <div><strong>Mercer Quality of Living</strong><span>International liveability ranking</span></div>
+          </div>
+          <div class="ranking-row">
+            <span class="ranking-row__rank">#1</span>
+            <div><strong>Smart City Strategy Index</strong><span>Municipal strategy benchmark</span></div>
+          </div>
+          <p class="ranking-card__note">Vienna’s rankings reflect sustained performance, not a single-year result.</p>
+        </article>
+      </div>
+
+      <div class="impact-summary reveal">
+        <div><strong>5</strong><span>Strategic axes</span></div>
+        <div><strong>3</strong><span>KPIs on or above trajectory</span></div>
+        <div><strong>2</strong><span>In active progress</span></div>
+        <div><strong>2030</strong><span>Target horizon</span></div>
+      </div>
+
+      <div class="kpi-panel glass-strong reveal">
+        <header class="kpi-panel__head">
+          <div>
+            <p class="kpi-panel__kicker"><svg class="icon"><use href="#ic-data"/></svg> Academic KPI Matrix</p>
+            <h3>Strategic performance dashboard</h3>
+          </div>
+          <span class="kpi-panel__meta">Baseline → 2030 trajectory</span>
+        </header>
+
+        <div class="table-wrap">
+          <table class="kpi-table">
+            <caption class="sr-only">Vienna smart city key performance indicators, current values, 2030 targets and status</caption>
+            <thead>
+              <tr>
+                <th scope="col">Strategic Axis</th>
+                <th scope="col">Performance Indicator (KPI)</th>
+                <th scope="col">Current Value</th>
+                <th scope="col">Target (2030)</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" data-label="Strategic Axis"><span class="axis-tag">Mobility</span></th>
+                <td data-label="Performance Indicator">Modal Split: Public Transit, Walking &amp; Cycling</td>
+                <td data-label="Current Value"><span class="kpi-current"><span class="kpi-value">73%</span><span class="kpi-bar"><i style="--fill:73%"></i></span></span></td>
+                <td data-label="Target (2030)"><span class="kpi-target">80%</span></td>
+                <td data-label="Status"><span class="status status--green"><i></i>On Track</span></td>
+              </tr>
+              <tr>
+                <th scope="row" data-label="Strategic Axis"><span class="axis-tag">Environment</span></th>
+                <td data-label="Performance Indicator">Urban Green Space Coverage</td>
+                <td data-label="Current Value"><span class="kpi-current"><span class="kpi-value">53%</span><span class="kpi-bar"><i style="--fill:53%"></i></span></span></td>
+                <td data-label="Target (2030)"><span class="kpi-target">&gt;50%</span></td>
+                <td data-label="Status"><span class="status status--green"><i></i>Exceeded</span></td>
+              </tr>
+              <tr>
+                <th scope="row" data-label="Strategic Axis"><span class="axis-tag">Climate</span></th>
+                <td data-label="Performance Indicator">Municipal Greenhouse Gas Reduction (vs 1990)</td>
+                <td data-label="Current Value"><span class="kpi-current"><span class="kpi-value">-34%</span><span class="kpi-bar"><i style="--fill:62%"></i></span></span></td>
+                <td data-label="Target (2030)"><span class="kpi-target">-55%</span></td>
+                <td data-label="Status"><span class="status status--orange"><i></i>In Progress</span></td>
+              </tr>
+              <tr>
+                <th scope="row" data-label="Strategic Axis"><span class="axis-tag">Energy</span></th>
+                <td data-label="Performance Indicator">Smart District Heating Renewable Integration</td>
+                <td data-label="Current Value"><span class="kpi-current"><span class="kpi-value">42%</span><span class="kpi-bar"><i style="--fill:42%"></i></span></span></td>
+                <td data-label="Target (2030)"><span class="kpi-target">60%</span></td>
+                <td data-label="Status"><span class="status status--orange"><i></i>In Progress</span></td>
+              </tr>
+              <tr>
+                <th scope="row" data-label="Strategic Axis"><span class="axis-tag">Housing</span></th>
+                <td data-label="Performance Indicator">Affordable &amp; Social Housing Availability</td>
+                <td data-label="Current Value"><span class="kpi-current"><span class="kpi-value">62%</span><span class="kpi-bar"><i style="--fill:100%"></i></span></span></td>
+                <td data-label="Target (2030)"><span class="kpi-target">&gt;60%</span></td>
+                <td data-label="Status"><span class="status status--green"><i></i>Global Benchmark</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="kpi-panel__foot">
+          <p>
+            <strong>Method note.</strong> Academic synthesis of the indicators presented in
+            this project. ISO 37120 and ISO 37122 provide the measurement framework; this
+            dashboard is not a certification claim. Current municipal values may differ
+            from the figures shown here.
+          </p>
+          <span class="kpi-panel__stamp">OUPTI · SCF · 2026</span>
+        </footer>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ACADEMIC PROJECT PRESENTATION CARD
+       ============================================================ -->
+  <section class="section academic" id="academic" aria-labelledby="academicTitle">
+    <div class="container">
+      <div class="academic-grid">
+      <article class="academic-card glass-strong reveal">
+        <div class="academic-card__halo" aria-hidden="true"></div>
+        <div class="academic-card__seal" aria-hidden="true">
+          <svg viewBox="0 0 120 120" role="presentation">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="3 5"/>
+            <path d="M45 78V48l15-12 15 12v30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M38 80h44M52 78V64h16v14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="60" cy="27" r="3" fill="currentColor"/>
+            <text x="60" y="100" text-anchor="middle" font-size="8" letter-spacing="2.5" fill="currentColor">2026</text>
+          </svg>
+        </div>
+
+        <p class="academic-card__eyebrow">Yahia Farès University of Médéa</p>
+        <h2 id="academicTitle">Academic Project Presentation</h2>
+        <p class="academic-card__subtitle">
+          <strong>VIENNA SMART CITY</strong> — Innovation, Sustainability, Quality of Life
+        </p>
+
+        <dl class="academic-details">
+          <div>
+            <dt>Institution</dt>
+            <dd>Yahia Farès University of Médéa</dd>
+          </div>
+          <div>
+            <dt>Faculty &amp; Department</dt>
+            <dd>Faculty of Technology — Architecture, Urbanism and City Professions (Smart Cities Engineering)</dd>
+          </div>
+          <div>
+            <dt>Program</dt>
+            <dd>Master 1: Smart Cities Engineering <span>(Academic Year: 2026 – 2027)</span></dd>
+          </div>
+          <div>
+            <dt>Module</dt>
+            <dd>Operational Urban Planning and Transport Infrastructure (OUPTI) &amp; Smart City Fundamentals (SCF)</dd>
+          </div>
+          <div>
+            <dt>Course Instructor</dt>
+            <dd>Dr. Khoukhi</dd>
+          </div>
+          <div class="academic-details__presenter">
+            <dt>Prepared &amp; Presented by</dt>
+            <dd>Tahraoui Ikram</dd>
+          </div>
+        </dl>
+
+        <div class="academic-card__footer">
+          <span class="academic-card__line"></span>
+          <span>Academic Year 2026 – 2027 · Vienna Smart City Case Study</span>
+          <span class="academic-card__line"></span>
+        </div>
+      </article>
+
+      <aside class="qr-card glass-strong reveal" aria-labelledby="qrTitle" style="--delay:120ms">
+        <div class="qr-card__head">
+          <span class="qr-card__icon" aria-hidden="true">
+            <svg class="icon"><use href="#ic-layers"/></svg>
+          </span>
+          <div>
+            <p class="qr-card__kicker" data-i18n="qr.kicker">Live Presentation Access</p>
+            <h3 id="qrTitle" data-i18n="qr.title">مسح الرابط</h3>
+          </div>
+        </div>
+
+        <div class="qr-card__frame">
+          <img
+            id="qrImage"
+            class="qr-card__image"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&amp;margin=10&amp;color=0f172a&amp;bgcolor=ffffff&amp;data=Vienna%20Smart%20City%20%C2%B7%20Academic%20Presentation"
+            alt="QR code linking to the live presentation"
+            width="240"
+            height="240"
+            decoding="async"
+            loading="lazy"
+          />
+        </div>
+
+        <div class="qr-card__caption">
+          <p class="qr-card__line" data-i18n="qr.scanEn">Scan to follow live on your device</p>
+          <p class="qr-card__line qr-card__line--ar" lang="ar" dir="rtl" data-i18n="qr.scanAr">امسح الرمز للمتابعة المباشرة وتغيير اللغة</p>
+        </div>
+
+        <p class="qr-card__url" id="qrUrl" title=""></p>
+
+        <ul class="qr-card__steps">
+          <li><span>1</span><span data-i18n="qr.step1">Scan the code with your phone camera</span></li>
+          <li><span>2</span><span data-i18n="qr.step2">Follow the presentation live on your device</span></li>
+          <li><span>3</span><span data-i18n="qr.step3">Switch between العربية and EN in the header</span></li>
+        </ul>
+      </aside>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="footer" id="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="brand" href="#home">
+          <span class="brand__mark"><svg class="icon"><use href="#ic-skyline"/></svg></span>
+          <span class="brand__text">Vienna <em>Smart City</em></span>
+        </a>
+        <p>
+          An academic study of integrated urban systems: multimodal mobility, circular
+          energy, open governance, social housing and benchmarked performance.
+        </p>
+        <div class="footer__badges">
+          <span class="badge badge--gold"><svg class="icon"><use href="#ic-star"/></svg>#1 Mercer</span>
+          <span class="badge badge--cyan">ISO 37120</span>
+          <span class="badge badge--cyan">ISO 37122</span>
+        </div>
+      </div>
+
+      <nav class="footer__col" aria-label="Footer navigation">
+        <h3>Navigate</h3>
+        <a href="#home">Home</a>
+        <a href="#about">About Vienna</a>
+        <a href="#mobility">Smart Mobility</a>
+        <a href="#environment">Smart Environment</a>
+      </nav>
+
+      <nav class="footer__col" aria-label="Secondary footer navigation">
+        <h3>Modules</h3>
+        <a href="#governance">Smart Governance</a>
+        <a href="#living">Smart Living</a>
+        <a href="#impact">Impact &amp; KPIs</a>
+        <a href="#academic">Academic card</a>
+      </nav>
+
+      <div class="footer__col footer__col--meta">
+        <h3>Academic Context</h3>
+        <p>Master 1: Smart Cities Engineering<br />2026 – 2027</p>
+        <p>Yahia Farès University of Médéa<br />Faculty of Technology — Architecture, Urbanism and City Professions</p>
+        <a class="footer__credit-link" href="CREDITS.md" target="_blank" rel="noopener">
+          Image credits
+          <svg class="icon"><use href="#ic-external"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© <span id="year">2026</span> Vienna Smart City · Academic presentation by Tahraoui Ikram.</p>
+      <p class="footer__note">
+        Figures are presented for academic discussion. Verify current values with the
+        City of Vienna and ISO indicator sources.
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     PRESENTATION LIGHTBOX / FULLSCREEN VIEWER
+     ============================================================ -->
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lightbox__backdrop" data-lightbox-close></div>
+
+  <div class="lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="lightboxTitle" aria-describedby="lightboxCaption">
+    <header class="lightbox__bar">
+      <div class="lightbox__meta">
+        <p class="lightbox__eyebrow"><span aria-hidden="true"></span> Presentation view</p>
+        <h2 id="lightboxTitle">Fullscreen preview</h2>
+      </div>
+
+      <div class="lightbox__tools">
+        <button class="icon-btn icon-btn--glass" id="lightboxZoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+        <button class="icon-btn icon-btn--glass" id="lightboxZoomIn" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+        <button class="icon-btn icon-btn--glass" id="lightboxFs" type="button" aria-label="Enter fullscreen" title="Fullscreen">
+          <svg class="icon"><use href="#ic-expand"/></svg>
+        </button>
+        <button class="icon-btn icon-btn--glass icon-btn--close" id="lightboxClose" type="button" data-lightbox-close aria-label="Close preview" title="Close">
+          <svg class="icon"><use href="#ic-close"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="lightbox__stage" id="lightboxStage">
+      <div class="lightbox__loader" id="lightboxLoader" aria-hidden="true"></div>
+      <img class="lightbox__image" id="lightboxImage" alt="" hidden />
+      <div class="lightbox__html" id="lightboxHtml" hidden></div>
+      <div class="lightbox__map" id="lightboxMap" hidden></div>
+    </div>
+
+    <footer class="lightbox__caption">
+      <p id="lightboxCaption">Vienna Smart City · presentation view</p>
+      <span class="lightbox__hint" id="lightboxHint">Press <kbd>Esc</kbd> or click the backdrop to close</span>
+    </footer>
+  </div>
+</div>
+
+<!-- ============================================================
+     VIDEO MODAL
+     ============================================================ -->
+<div class="video-modal" id="videoModal" hidden>
+  <div class="video-modal__backdrop" data-video-close></div>
+
+  <div class="video-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle" aria-describedby="videoModalDesc">
+    <header class="video-modal__head">
+      <div class="video-modal__heading">
+        <p class="video-modal__eyebrow"><span></span> Vienna Smart City · Film</p>
+        <h2 id="videoModalTitle">The city in motion</h2>
+        <p id="videoModalDesc">Innovation, sustainability and quality of life — an overview of Vienna’s integrated urban system.</p>
+      </div>
+
+      <div class="video-modal__controls">
+        <button class="icon-btn icon-btn--glass" id="videoFullscreen" type="button" aria-label="Enter fullscreen" title="Fullscreen">
+          <svg class="icon"><use href="#ic-expand"/></svg>
+        </button>
+        <button class="icon-btn icon-btn--glass icon-btn--close" id="videoClose" type="button" data-video-close aria-label="Close video" title="Close">
+          <svg class="icon"><use href="#ic-close"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="video-frame" id="videoFrame">
+      <video id="hero-modal-video" controls loop muted playsinline preload="none" poster="assets/video-poster.jpg">
+        <source src="vienna-overview.mp4" type="video/mp4" />
+        <source src="https://videos.pexels.com/video-files/37677778/15974174_2560_1440_25fps.mp4" type="video/mp4" />
+        Your browser does not support embedded video.
+      </video>
+
+      <div class="video-fallback" id="videoFallback" hidden>
+        <div class="video-fallback__icon"><svg class="icon"><use href="#ic-play"/></svg></div>
+        <h3>Video stream unavailable</h3>
+        <p>The local film could not be loaded. Check the connection or retry the stream.</p>
+        <button class="btn btn--glass" id="videoRetry" type="button">
+          <svg class="icon"><use href="#ic-play"/></svg>
+          Retry stream
+        </button>
+      </div>
+    </div>
+
+    <footer class="video-modal__foot">
+      <p>Vienna Smart City · Innovation, Sustainability, Quality of Life</p>
+      <p class="video-modal__hint">Press <kbd>Esc</kbd> to close · audio stops on exit</p>
+    </footer>
+  </div>
+</div>
+
+<!-- Back to top -->
+<button class="to-top" id="toTop" type="button" aria-label="Back to top">
+  <svg class="icon"><use href="#ic-arrow"/></svg>
+</button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="app.js?v=16" defer></script>
+</body>
+</html>
