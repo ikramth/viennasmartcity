@@ -1,0 +1,23 @@
+{
+  "name": "atlas-villes-intelligentes",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Atlas & Observatoire des Villes Intelligentes — Academic research repository, Master 1 Smart Cities Engineering, Université Yahia Farès de Médéa.",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/dev.mjs",
+    "dev:vercel": "vercel dev",
+    "check": "node --check portal.js && node --check api/projects.js && node --check api/upload.js && node --check scripts/dev.mjs",
+    "build:blob": "esbuild node_modules/@vercel/blob/dist/client.js --bundle --format=esm --platform=browser --minify --outfile=portal-blob-client.js"
+  },
+  "dependencies": {
+    "@vercel/blob": "2.9.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -4,6 +4,23 @@ bin-release/
 [Oo]bj/
 [Bb]in/
 
+# Dependencies
+node_modules/
+
+# Vercel
+.vercel/
+
+# Environment (keep .env.example tracked)
+.env
+.env.local
+.env.*.local
+
+# Logs & OS noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
 # Other files and folders
 .settings/
 
