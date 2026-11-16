@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Tajawal:wght@300;400;500;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal.css?v=2" />
+  <link rel="stylesheet" href="portal.css?v=3" />
   <script>
     (function () {
       try {
@@ -73,13 +73,18 @@
   <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.8" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
   <symbol id="ic-building" viewBox="0 0 24 24"><path d="M4.5 20.5h15M6.5 20.5V8.2L12 3.5l5.5 4.7v12.3M9.7 20.5v-4.2h4.6v4.2M9.5 9.2h.1M14.4 9.2h.1M9.5 12.4h.1M14.4 12.4h.1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="ic-spark" viewBox="0 0 24 24"><path d="M12 2.8 13.9 9l6.2 1.9-6.2 1.9L12 19l-1.9-6.2L3.9 10.9 10.1 9 12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-megaphone" viewBox="0 0 24 24"><path d="M4.5 10v4h3.6l6.4 3.6V6.4L8.1 10H4.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 8.7a4.6 4.6 0 0 1 0 6.6M17.2 6.6a7.8 7.8 0 0 1 0 10.8M7.5 14.5l1 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
   <symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 10.5v6M14 10.5v6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 2.8 20 6v5.5c0 4.7-3.3 8-8 9.7-4.7-1.7-8-5-8-9.7V6l8-3.2Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m8.7 12 2.2 2.2 4.4-4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="ic-upload" viewBox="0 0 24 24"><path d="M12 16V4M7.5 8.5 12 4l4.5 4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
-<canvas id="coverCanvas" class="cover-canvas" aria-hidden="true"></canvas>
-<div class="cover-grain" aria-hidden="true"></div>
+<div class="ambient" id="ambient" aria-hidden="true">
+  <span class="ambient__glow ambient__glow--a"></span>
+  <span class="ambient__glow ambient__glow--b"></span>
+  <span class="ambient__glow ambient__glow--c"></span>
+  <span class="ambient__cursor" id="ambientCursor"></span>
+</div>
 <div class="page-veil" id="pageVeil" aria-hidden="true"><i></i></div>
 
 <div class="app" id="app" data-view="cover">
@@ -89,6 +94,129 @@
        ============================================================ -->
   <section class="view view--cover" id="coverView" aria-labelledby="atlasTitle">
     <div class="cover-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+    <div class="cover-scene" aria-hidden="true">
+      <svg class="cover-scene__svg" viewBox="0 0 1440 820" preserveAspectRatio="xMidYMax slice" focusable="false">
+        <defs>
+          <linearGradient id="sceneSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#05080f"/>
+            <stop offset=".55" stop-color="#091323"/>
+            <stop offset="1" stop-color="#0b1729"/>
+          </linearGradient>
+          <radialGradient id="sceneGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#d9b26a" stop-opacity=".5"/>
+            <stop offset="1" stop-color="#d9b26a" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="sceneGold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f4dda9"/>
+            <stop offset="1" stop-color="#b98a43"/>
+          </linearGradient>
+          <pattern id="sceneWindows" width="14" height="18" patternUnits="userSpaceOnUse">
+            <rect x="2" y="3" width="5" height="7" fill="#f4d79b" opacity=".55"/>
+          </pattern>
+          <pattern id="sceneWindowsDim" width="18" height="22" patternUnits="userSpaceOnUse">
+            <rect x="3" y="5" width="4" height="5" fill="#d9b26a" opacity=".2"/>
+          </pattern>
+          <linearGradient id="sceneRoad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#d9b26a" stop-opacity="0"/>
+            <stop offset=".5" stop-color="#f4d79b" stop-opacity=".85"/>
+            <stop offset="1" stop-color="#d9b26a" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <rect width="1440" height="820" fill="url(#sceneSky)"/>
+        <circle cx="1130" cy="170" r="280" fill="url(#sceneGlow)"/>
+        <circle cx="1130" cy="170" r="78" fill="none" stroke="#e9c887" stroke-opacity=".3"/>
+        <circle cx="1130" cy="170" r="50" fill="#f0d29a" fill-opacity=".1"/>
+
+        <g stroke="#d9b26a" stroke-opacity=".1" stroke-width="1">
+          <path d="M720 430 40 820M720 430 240 820M720 430 440 820M720 430 640 820M720 430 800 820M720 430 1000 820M720 430 1200 820M720 430 1400 820"/>
+          <path d="M0 700h1440M0 754h1440M0 800h1440"/>
+        </g>
+
+        <g fill="#102036" opacity=".85">
+          <rect x="60" y="520" width="90" height="300" rx="2"/>
+          <rect x="170" y="470" width="70" height="350" rx="2"/>
+          <rect x="360" y="545" width="110" height="275" rx="2"/>
+          <rect x="500" y="500" width="80" height="320" rx="2"/>
+          <rect x="860" y="480" width="95" height="340" rx="2"/>
+          <rect x="980" y="535" width="120" height="285" rx="2"/>
+          <rect x="1210" y="500" width="85" height="320" rx="2"/>
+          <rect x="1320" y="555" width="70" height="265" rx="2"/>
+        </g>
+
+        <g>
+          <rect x="95" y="420" width="138" height="400" rx="3" fill="#0d1a2c"/>
+          <rect x="99" y="428" width="130" height="392" fill="url(#sceneWindowsDim)"/>
+          <rect x="128" y="368" width="4" height="52" fill="#d9b26a" opacity=".55"/>
+          <rect x="196" y="390" width="4" height="30" fill="#d9b26a" opacity=".4"/>
+
+          <rect x="250" y="470" width="96" height="350" rx="3" fill="#101f34"/>
+          <rect x="254" y="478" width="88" height="342" fill="url(#sceneWindows)"/>
+
+          <rect x="390" y="360" width="118" height="460" rx="3" fill="#0e1c30"/>
+          <rect x="394" y="368" width="110" height="452" fill="url(#sceneWindowsDim)"/>
+          <rect x="418" y="300" width="3" height="60" fill="#d9b26a" opacity=".5"/>
+          <rect x="484" y="325" width="3" height="35" fill="#d9b26a" opacity=".35"/>
+
+          <rect x="620" y="250" width="150" height="570" rx="4" fill="#0b1829"/>
+          <rect x="625" y="258" width="140" height="562" fill="url(#sceneWindows)"/>
+          <rect x="676" y="160" width="4" height="90" fill="#e9c887" opacity=".75"/>
+          <circle cx="678" cy="158" r="4" fill="#f4d79b" class="scene-pulse"/>
+          <rect x="650" y="215" width="90" height="3" fill="#d9b26a" opacity=".35"/>
+
+          <rect x="800" y="430" width="135" height="390" rx="3" fill="#101e32"/>
+          <rect x="804" y="438" width="127" height="382" fill="url(#sceneWindowsDim)"/>
+
+          <rect x="1000" y="330" width="122" height="490" rx="3" fill="#0d1a2c"/>
+          <rect x="1004" y="338" width="114" height="482" fill="url(#sceneWindows)"/>
+          <rect x="1040" y="272" width="3" height="58" fill="#e9c887" opacity=".55"/>
+          <circle cx="1041.5" cy="270" r="3.4" fill="#f4d79b" class="scene-pulse"/>
+
+          <rect x="1160" y="470" width="92" height="350" rx="3" fill="#101f34"/>
+          <rect x="1164" y="478" width="84" height="342" fill="url(#sceneWindowsDim)"/>
+
+          <rect x="1280" y="405" width="112" height="415" rx="3" fill="#0c192b"/>
+          <rect x="1284" y="413" width="104" height="407" fill="url(#sceneWindows)"/>
+        </g>
+
+        <g fill="none" stroke="url(#sceneGold)" stroke-width="1.2" stroke-dasharray="3 9" opacity=".55">
+          <path d="M280 360C430 250 560 330 678 158S980 210 1130 170"/>
+          <path d="M430 300C570 220 760 260 900 200S1180 240 1320 210"/>
+        </g>
+        <g fill="#f4d79b">
+          <circle cx="280" cy="360" r="2.6" opacity=".8"/>
+          <circle cx="678" cy="158" r="3" opacity=".9"/>
+          <circle cx="1130" cy="170" r="2.6" opacity=".8"/>
+          <circle cx="430" cy="300" r="2.2" opacity=".6"/>
+          <circle cx="900" cy="200" r="2.4" opacity=".7"/>
+        </g>
+
+        <g opacity=".9">
+          <rect x="0" y="770" width="1440" height="50" fill="#05080f"/>
+          <rect x="0" y="770" width="1440" height="1" fill="#d9b26a" opacity=".28"/>
+          <rect x="90" y="792" width="420" height="2.4" rx="1.2" fill="url(#sceneRoad)" class="scene-trail"/>
+          <rect x="760" y="806" width="520" height="2.4" rx="1.2" fill="url(#sceneRoad)" class="scene-trail scene-trail--slow"/>
+          <rect x="420" y="780" width="300" height="1.6" rx=".8" fill="url(#sceneRoad)" opacity=".7"/>
+        </g>
+
+        <g fill="#f4d79b" opacity=".6">
+          <circle cx="200" cy="250" r="1.4"/>
+          <circle cx="520" cy="190" r="1.2"/>
+          <circle cx="860" cy="120" r="1.6"/>
+          <circle cx="1240" cy="300" r="1.3"/>
+          <circle cx="1380" cy="140" r="1.2"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cover-float cover-float--a" aria-hidden="true">
+      <span>ISO 37120</span>
+      <b>Indicateurs urbains</b>
+    </div>
+    <div class="cover-float cover-float--b" aria-hidden="true">
+      <span>Corpus</span>
+      <b><em id="coverFloatCount">02</em> études fondatrices</b>
+    </div>
 
     <aside class="cover-spine" aria-hidden="true">
       <span data-fr="ATLAS · OBSERVATOIRE" data-ar="أطلس · مرصد">ATLAS · OBSERVATOIRE</span>
@@ -152,15 +280,6 @@
         <p class="cover-note__text" data-fr="Cette plateforme rassemble les études de cas, diagnostics spatiaux et projets d'urbanisme intelligent de la promotion. Chaque étudiant(e) peut explorer les travaux de ses camarades, publier sa propre recherche et contribuer, collectivement, à un atlas vivant des villes intelligentes." data-ar="تجمع هذه المنصة دراسات الحالة والتحليلات المكانية ومشاريع التخطيط الحضري الذكي لفوج الماستر. ويمكن لكل طالب أو طالبة استكشاف أعمال زملائه، ونشر بحثه، والمساهمة جماعياً في بناء أطلس حيّ للمدن الذكية.">Cette plateforme rassemble les études de cas, diagnostics spatiaux et projets d'urbanisme intelligent de la promotion. Chaque étudiant(e) peut explorer les travaux de ses camarades, publier sa propre recherche et contribuer, collectivement, à un atlas vivant des villes intelligentes.</p>
         <p class="cover-note__sign" data-fr="Sous la direction de Dr. Khoukhi" data-ar="بإشراف الدكتور خوكي">Sous la direction de Dr. Khoukhi</p>
       </div>
-    </main>
-
-    <footer class="cover-foot">
-      <div class="cover-foot__meta">
-        <div><span data-fr="Direction" data-ar="الإشراف">Direction</span><strong>Dr. Khoukhi</strong></div>
-        <div><span data-fr="Promotion" data-ar="الفوج">Promotion</span><strong data-fr="Master 1 · Smart Cities" data-ar="ماستر 1 · المدن الذكية">Master 1 · Smart Cities</strong></div>
-        <div><span data-fr="Corpus" data-ar="الفهرس">Corpus</span><strong><span id="coverCount">02</span> <span data-fr="études fondatrices" data-ar="دراسات مؤسِّسة">études fondatrices</span></strong></div>
-      </div>
-
       <div class="cover-cta-wrap">
         <a class="cover-cta" href="#projets" id="enterAtlas">
           <span class="cover-cta__text">
@@ -171,8 +290,10 @@
         </a>
         <p class="cover-cta__hint" data-fr="Entrez dans le corpus · exploration libre · publication collaborative" data-ar="ادخل إلى الفهرس · استكشاف حر · نشر تعاوني">Entrez dans le corpus · exploration libre · publication collaborative</p>
       </div>
+    </main>
 
-      <div class="cover-foot__folio" aria-hidden="true">p. 01</div>
+    <footer class="cover-foot">
+      <p class="site-credit">M1 Smart Cities Engineering • © 2026 • Dir. Dr. Khoukhi</p>
     </footer>
   </section>
 
@@ -194,6 +315,7 @@
           <a href="#couverture" class="hub-link" data-fr="Couverture" data-ar="الغلاف">Couverture</a>
           <a href="#projets" class="hub-link is-active" aria-current="page" data-fr="Projets" data-ar="البحوث">Projets</a>
           <a href="#corpus" class="hub-link" data-fr="Corpus" data-ar="الفهرس">Corpus</a>
+          <a href="#enseignant" class="hub-link" data-fr="Enseignant" data-ar="الأستاذ">Enseignant</a>
         </nav>
 
         <div class="hub-actions">
@@ -359,30 +481,52 @@
           </button>
         </div>
       </section>
+      <section class="teacher" id="enseignant" aria-labelledby="teacherTitle">
+        <div class="teacher__card">
+          <div class="teacher__head">
+            <div class="teacher__intro">
+              <p class="eyebrow" data-fr="Espace enseignant · ركن الأستاذ" data-ar="ركن الأستاذ">Espace enseignant · ركن الأستاذ</p>
+              <h2 id="teacherTitle" data-fr="Espace Enseignant — Dr. Khoukhi" data-ar="فضاء الأستاذ — د. خوكي">Espace Enseignant — Dr. Khoukhi</h2>
+              <p data-fr="Annonces importantes, remarques pédagogiques et supports de cours publiés pour la promotion." data-ar="إعلانات مهمة وملاحظات بيداغوجية ودعامات دراسية منشورة لفائدة الفوج.">Annonces importantes, remarques pédagogiques et supports de cours publiés pour la promotion.</p>
+            </div>
+          </div>
+
+          <div class="teacher__tools">
+            <details class="teacher-courses" id="teacherCourses">
+              <summary>
+                <span class="teacher-courses__label"><span data-fr="Supports de cours" data-ar="الدعامات الدراسية">Supports de cours</span> (<b id="teacherCourseCount">10</b>)</span>
+                <span class="teacher-courses__emoji" aria-hidden="true">📚</span>
+              </summary>
+              <ul class="teacher-courses__list" id="teacherCourseList"></ul>
+            </details>
+
+            <button class="btn btn--ghost btn--sm" id="teacherLastNote" type="button" aria-expanded="false" aria-controls="teacherNotePanel">
+              <svg class="icon" aria-hidden="true"><use href="#ic-spark"/></svg>
+              <span data-fr="Dernière Note" data-ar="آخر ملاحظة">Dernière Note</span>
+            </button>
+
+            <button class="btn btn--ghost btn--sm teacher__publish" id="openTeacher" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#ic-megaphone"/></svg>
+              <span data-fr="Publier en tant qu'enseignant" data-ar="النشر بصفتك أستاذاً">Publier en tant qu'enseignant</span>
+            </button>
+
+            <span class="teacher__unlock" id="teacherUnlockState" hidden data-fr="Mode enseignant actif" data-ar="وضع الأستاذ مفعّل">Mode enseignant actif</span>
+          </div>
+
+          <div class="teacher-note" id="teacherNotePanel" hidden>
+            <p class="teacher-note__label" data-fr="Dernière note de l'enseignant" data-ar="آخر ملاحظة للأستاذ">Dernière note de l'enseignant</p>
+            <p class="teacher-note__text" id="teacherNoteText"></p>
+            <p class="teacher-note__meta" id="teacherNoteMeta"></p>
+          </div>
+
+          <div class="teacher__feed" id="teacherFeed" aria-live="polite"></div>
+          <p class="teacher__empty" id="teacherEmpty" data-fr="Aucune publication pour le moment. Les annonces et supports de cours apparaîtront ici." data-ar="لا توجد منشورات حالياً. ستظهر الإعلانات والدعامات الدراسية هنا.">Aucune publication pour le moment. Les annonces et supports de cours apparaîtront ici.</p>
+        </div>
+      </section>
     </main>
 
     <footer class="hub-foot">
-      <div class="hub-foot__inner">
-        <div class="hub-foot__brand">
-          <span class="hub-brand__mark" aria-hidden="true"><svg class="icon"><use href="#ic-mark"/></svg></span>
-          <div>
-            <b>Atlas &amp; Observatoire des Villes Intelligentes</b>
-            <p data-fr="Université Yahia Farès de Médéa · Faculté de Technologie · Master 1 Smart Cities Engineering" data-ar="جامعة يحيى فارس بالمدية · كلية التكنولوجيا · ماستر 1 هندسة المدن الذكية">Université Yahia Farès de Médéa · Faculté de Technologie · Master 1 Smart Cities Engineering</p>
-          </div>
-        </div>
-
-        <div class="hub-foot__links">
-          <a href="vienna.html"><span data-fr="Étude Vienne" data-ar="دراسة فيينا">Étude Vienne</span> <svg class="icon"><use href="#ic-external"/></svg></a>
-          <a href="keb/index.html"><span data-fr="Étude Ksar El Boukhari × Boughezoul" data-ar="دراسة قصر البخاري × بوغزول">Étude Ksar El Boukhari × Boughezoul</span> <svg class="icon"><use href="#ic-external"/></svg></a>
-          <button type="button" id="openCloudFoot"><span data-fr="Guide de publication" data-ar="دليل النشر">Guide de publication</span> <svg class="icon"><use href="#ic-arrow"/></svg></button>
-          <a href="#couverture"><span data-fr="Retour à la couverture" data-ar="العودة إلى الغلاف">Retour à la couverture</span> <svg class="icon"><use href="#ic-arrow-up"/></svg></a>
-        </div>
-
-        <div class="hub-foot__meta">
-          <span>© <span id="year">2026</span> · M1 Smart Cities · UYF Médéa</span>
-          <span data-fr="Sous la direction du Dr. Khoukhi" data-ar="بإشراف الدكتور خوكي">Sous la direction du Dr. Khoukhi</span>
-        </div>
-      </div>
+      <p class="site-credit">M1 Smart Cities Engineering • © 2026 • Dir. Dr. Khoukhi</p>
     </footer>
   </section>
 </div>
@@ -402,7 +546,7 @@
       <div>
         <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span><span data-fr="Contribuer au corpus" data-ar="المساهمة في الفهرس">Contribuer au corpus</span></p>
         <h2 id="submitTitle" data-fr="Ajouter une recherche" data-ar="إضافة بحث">Ajouter une recherche</h2>
-        <p id="submitDesc" data-fr="Remplissez la fiche, joignez un fichier (PDF, PPTX, PNG ou JPG — 20 Mo max) ou un lien, puis saisissez le code de cohorte." data-ar="املأ البطاقة، أرفق ملفاً (PDF أو PPTX أو PNG أو JPG — 20 ميغابايت كحد أقصى) أو رابطاً، ثم أدخل رمز الفوج.">Remplissez la fiche, joignez un fichier (PDF, PPTX, PNG ou JPG — 20 Mo max) ou un lien, puis saisissez le code de cohorte.</p>
+        <p id="submitDesc" data-fr="Remplissez la fiche, joignez un fichier (PDF, PPTX, PNG ou JPG — 20 Mo max) ou un lien, puis saisissez le code de section fourni par l'enseignant." data-ar="املأ البطاقة، أرفق ملفاً (PDF أو PPTX أو PNG أو JPG — 20 ميغابايت كحد أقصى) أو رابطاً، ثم أدخل رمز الدفعة الذي يوفره الأستاذ.">Remplissez la fiche, joignez un fichier (PDF, PPTX, PNG ou JPG — 20 Mo max) ou un lien, puis saisissez le code de section fourni par l'enseignant.</p>
       </div>
       <button class="icon-btn modal__close" type="button" data-close="submitModal" aria-label="Fermer">
         <svg class="icon"><use href="#ic-close"/></svg>
@@ -498,17 +642,17 @@
         <div class="field field--full field--gate" id="codeField">
           <label for="f-code">
             <svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg>
-            <span data-fr="Code de cohorte" data-ar="رمز الفوج">Code de cohorte</span>
+            <span data-fr="Code de section" data-ar="رمز الدفعة">Code de section</span>
             <b class="req" aria-hidden="true">*</b>
           </label>
           <div class="gate" id="gateWrap">
             <span class="gate__icon" aria-hidden="true"><svg class="icon"><use href="#ic-shield"/></svg></span>
-            <input id="f-code" name="code" type="password" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="codeHint" placeholder="Code partagé par l’enseignant" />
+            <input id="f-code" name="code" type="password" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="codeHint" placeholder="Code de section M1" />
             <button type="button" class="gate__toggle" id="codeToggle" aria-label="Afficher le code" aria-pressed="false">
               <svg class="icon" aria-hidden="true"><use href="#ic-eye"/></svg>
             </button>
           </div>
-          <small class="field__hint" id="codeHint" data-fr="Dépôt réservé à la promotion M1. Le code est fourni par le Dr. Khoukhi." data-ar="الرفع مخصص لفوج ماستر 1. الرمز يوفره الدكتور خوكي.">Dépôt réservé à la promotion M1. Le code est fourni par le Dr. Khoukhi.</small>
+          <small class="field__hint" id="codeHint" data-fr="Réservé à la section M1. Le code de section est fourni par le Dr. Khoukhi." data-ar="مخصص لدفعة ماستر 1. رمز الدفعة يوفره الدكتور خوكي.">Réservé à la section M1. Le code de section est fourni par le Dr. Khoukhi.</small>
         </div>
 
         <div class="field field--full honeypot" aria-hidden="true">
@@ -650,19 +794,49 @@
   file_url text,
   file_name text,
   link text,
+  owner_hash text,
   created_at timestamptz not null default now()
 );
 
+alter table public.research_projects
+  add column if not exists owner_hash text;
+
+create table if not exists public.atlas_announcements (
+  id text primary key,
+  kind text not null check (kind in ('announcement', 'remark', 'resource', 'note')),
+  title text not null,
+  body text,
+  link text,
+  file_url text,
+  file_name text,
+  project_id text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.atlas_announcements
+  add column if not exists project_id text;
+
 alter table public.research_projects enable row level security;
+alter table public.atlas_announcements enable row level security;
 
 create policy "atlas public read"
   on public.research_projects for select using (true);
-
 create policy "atlas public insert"
   on public.research_projects for insert with check (true);
+create policy "atlas public delete"
+  on public.research_projects for delete using (true);
+
+create policy "atlas announcements read"
+  on public.atlas_announcements for select using (true);
+create policy "atlas announcements insert"
+  on public.atlas_announcements for insert with check (true);
+create policy "atlas announcements delete"
+  on public.atlas_announcements for delete using (true);
 
 create index if not exists research_projects_created_at_idx
-  on public.research_projects (created_at desc);</pre>
+  on public.research_projects (created_at desc);
+create index if not exists atlas_announcements_created_at_idx
+  on public.atlas_announcements (created_at desc);</pre>
       <button class="btn btn--ghost btn--sm" type="button" id="copySql" data-fr="Copier le SQL" data-ar="نسخ SQL">Copier le SQL</button>
     </details>
 
@@ -676,6 +850,114 @@ create index if not exists research_projects_created_at_idx
   </div>
 </div>
 
-<script src="portal.js?v=4" defer></script>
+<!-- ============================================================
+     MODAL — TEACHER SPACE
+     ============================================================ -->
+<div class="modal" id="teacherModal" hidden>
+  <div class="modal__backdrop" data-close="teacherModal" aria-hidden="true"></div>
+  <div class="modal__panel modal__panel--teacher" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle" aria-describedby="teacherModalDesc">
+    <header class="modal__head">
+      <div>
+        <p class="eyebrow"><span class="eyebrow__dot" aria-hidden="true"></span><span data-fr="Espace enseignant" data-ar="فضاء الأستاذ">Espace enseignant</span></p>
+        <h2 id="teacherModalTitle" data-fr="Publier une annonce ou un support" data-ar="نشر إعلان أو دعامة دراسية">Publier une annonce ou un support</h2>
+        <p id="teacherModalDesc" data-fr="Réservé au Dr. Khoukhi. Le code enseignant protège la publication et la suppression." data-ar="مخصص للدكتور خوكي. رمز الأستاذ يحمي النشر والحذف.">Réservé au Dr. Khoukhi. Le code enseignant protège la publication et la suppression.</p>
+      </div>
+      <button class="icon-btn modal__close" type="button" data-close="teacherModal" aria-label="Fermer">
+        <svg class="icon"><use href="#ic-close"/></svg>
+      </button>
+    </header>
+
+    <form class="form" id="teacherForm" novalidate>
+      <div class="form__grid">
+        <div class="field field--full field--gate" id="teacherCodeField">
+          <label for="t-code">
+            <svg class="icon" aria-hidden="true"><use href="#ic-shield"/></svg>
+            <span data-fr="Code enseignant" data-ar="رمز الأستاذ">Code enseignant</span>
+            <b class="req" aria-hidden="true">*</b>
+          </label>
+          <div class="gate">
+            <span class="gate__icon" aria-hidden="true"><svg class="icon"><use href="#ic-shield"/></svg></span>
+            <input id="t-code" name="code" type="password" maxlength="80" autocomplete="off" spellcheck="false" aria-describedby="teacherCodeHint" placeholder="Code fourni par l'enseignant" />
+            <button type="button" class="gate__toggle" id="teacherCodeToggle" aria-label="Afficher le code" aria-pressed="false">
+              <svg class="icon" aria-hidden="true"><use href="#ic-eye"/></svg>
+            </button>
+          </div>
+          <small class="field__hint" id="teacherCodeHint" data-fr="Le code est vérifié côté serveur avant toute publication ou suppression." data-ar="يتم التحقق من الرمز على مستوى الخادم قبل أي نشر أو حذف.">Le code est vérifié côté serveur avant toute publication ou suppression.</small>
+        </div>
+
+        <div class="field field--full">
+          <label for="t-kind"><span data-fr="Type de publication" data-ar="نوع المنشور">Type de publication</span> <b class="req" aria-hidden="true">*</b></label>
+          <select id="t-kind" name="kind" required>
+            <option value="announcement" data-fr="Annonce importante" data-ar="إعلان مهم">Annonce importante</option>
+            <option value="remark" data-fr="Remarque pédagogique" data-ar="ملاحظة بيداغوجية">Remarque pédagogique</option>
+            <option value="resource" data-fr="Support de cours" data-ar="دعامة دراسية">Support de cours</option>
+            <option value="note" data-fr="Note sur un projet" data-ar="ملاحظة على مشروع">Note sur un projet</option>
+          </select>
+        </div>
+
+        <div class="field field--full" id="t-project-field" hidden>
+          <label for="t-project"><span data-fr="Projet concerné" data-ar="المشروع المعني">Projet concerné</span> <b class="req" aria-hidden="true">*</b></label>
+          <select id="t-project" name="project">
+            <option value="">—</option>
+          </select>
+          <small class="field__hint" data-fr="La note apparaîtra dans la fiche du projet et dans « Dernière Note »." data-ar="ستظهر الملاحظة في بطاقة المشروع وفي «آخر ملاحظة».">La note apparaîtra dans la fiche du projet et dans « Dernière Note ».</small>
+        </div>
+
+        <div class="field field--full">
+          <label for="t-title"><span data-fr="Titre" data-ar="العنوان">Titre</span> <b class="req" aria-hidden="true">*</b></label>
+          <input id="t-title" name="title" type="text" maxlength="160" required autocomplete="off" placeholder="Consignes du séminaire, support SCF…" />
+        </div>
+
+        <div class="field field--full">
+          <label for="t-body"><span data-fr="Message / consignes" data-ar="الرسالة / التعليمات">Message / consignes</span></label>
+          <textarea id="t-body" name="body" rows="4" maxlength="3000" placeholder="Précisions, échéances, consignes de lecture…"></textarea>
+        </div>
+
+        <div class="field field--full">
+          <span class="field__legend"><span data-fr="Support de cours ou lien" data-ar="دعامة دراسية أو رابط">Support de cours ou lien</span> <small class="optional" data-fr="(facultatif)" data-ar="(اختياري)">(facultatif)</small></span>
+
+          <label class="drop drop--compact" id="teacherDropZone" for="t-file">
+            <input id="t-file" name="file" type="file" accept=".pdf,.pptx,.png,.jpg,.jpeg,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,image/png,image/jpeg" hidden />
+            <span class="drop__icon" aria-hidden="true"><svg class="icon"><use href="#ic-upload"/></svg></span>
+            <span class="drop__title" data-fr="Glissez un support ou cliquez pour parcourir" data-ar="اسحب دعامة أو انقر للاختيار">Glissez un support ou cliquez pour parcourir</span>
+            <span class="drop__meta">PDF · PPTX · PNG / JPG · <span data-fr="20 Mo max" data-ar="20 ميغابايت كحد أقصى">20 Mo max</span></span>
+          </label>
+
+          <div class="file-pill" id="teacherFilePill" hidden>
+            <span class="file-pill__icon" aria-hidden="true"><svg class="icon"><use href="#ic-file"/></svg></span>
+            <span class="file-pill__meta"><b id="teacherFileName"></b><small id="teacherFileSize"></small></span>
+            <button type="button" class="icon-btn" id="teacherFileRemove" aria-label="Retirer le fichier"><svg class="icon"><use href="#ic-trash"/></svg></button>
+          </div>
+
+          <div class="or-sep" aria-hidden="true"><span data-fr="ou" data-ar="أو">ou</span></div>
+
+          <label class="field__label" for="t-link"><span data-fr="Lien externe" data-ar="رابط خارجي">Lien externe</span></label>
+          <div class="input-with-icon">
+            <svg class="icon" aria-hidden="true"><use href="#ic-link"/></svg>
+            <input id="t-link" name="link" type="url" inputmode="url" maxlength="600" autocomplete="url" placeholder="https://…" />
+          </div>
+        </div>
+      </div>
+
+      <p class="form__error" id="teacherError" role="alert" hidden></p>
+
+      <div class="form__foot">
+        <p class="form__note" id="teacherModeNote">
+          <svg class="icon" aria-hidden="true"><use href="#ic-cloud"/></svg>
+          <span data-fr="Stockage cloud pour les annonces et supports." data-ar="تخزين سحابي للإعلانات والدعامات.">Stockage cloud pour les annonces et supports.</span>
+        </p>
+        <div class="form__actions">
+          <button class="btn btn--ghost" type="button" data-close="teacherModal" data-fr="Annuler" data-ar="إلغاء">Annuler</button>
+          <button class="btn btn--primary" type="submit" id="teacherSubmitBtn">
+            <span class="btn__label" data-fr="Publier" data-ar="نشر">Publier</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="portal.js?v=6" defer></script>
 </body>
 </html>

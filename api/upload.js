@@ -6,15 +6,11 @@
  *   - only .pdf / .pptx / .png / .jpg / .jpeg (matching MIME types)
  *   - 20 MB maximum
  *   - pathname must be atlas/files/<uuid>.<ext> (no original filenames)
- *   - optional cohort passcode (ATLAS_CLASS_CODE, default M1-MEDEA-2026)
+ *   - section code (ATLAS_CLASS_CODE, default M1-MEDEA-2026) or teacher code
+ *     (ATLAS_TEACHER_CODE, default PROF-MEDEA-2026)
  */
 import { handleUpload } from "@vercel/blob/client";
-
-const DEFAULT_CLASS_CODE = "M1-MEDEA-2026";
-
-/* Set ATLAS_CLASS_CODE=off (or open/none) to publish without a passcode. */
-const RAW_CLASS_CODE = String(process.env.ATLAS_CLASS_CODE == null ? "" : process.env.ATLAS_CLASS_CODE).trim();
-const CLASS_CODE = /^(off|open|none)$/i.test(RAW_CLASS_CODE) ? "" : RAW_CLASS_CODE || DEFAULT_CLASS_CODE;
+import { CLASS_CODE, TEACHER_CODE } from "./_atlas.js";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 
@@ -52,7 +48,11 @@ export default async function handler(req, res) {
 
   let body = req.body;
   if (typeof body === "string") {
-    try { body = JSON.parse(body); } catch { body = null; }
+    try {
+      body = JSON.parse(body);
+    } catch {
+      body = null;
+    }
   }
   if (!body) {
     return res.status(400).json({ ok: false, error: "invalid-body" });
@@ -67,9 +67,9 @@ export default async function handler(req, res) {
         if (typeof pathname !== "string" || !SAFE_PATHNAME.test(pathname)) {
           throw new Error("invalid-pathname");
         }
-        if (CLASS_CODE && readCode(clientPayload) !== CLASS_CODE) {
-          throw new Error("invalid-class-code");
-        }
+        const code = readCode(clientPayload);
+        const allowed = (!CLASS_CODE && !TEACHER_CODE) || code === CLASS_CODE || (TEACHER_CODE && code === TEACHER_CODE);
+        if (!allowed) throw new Error("invalid-class-code");
         return {
           allowedContentTypes: ALLOWED_TYPES,
           maximumSizeInBytes: MAX_SIZE,

@@ -8,7 +8,7 @@
     "dev": "node scripts/dev.mjs",
     "start": "node scripts/dev.mjs",
     "dev:vercel": "vercel dev",
-    "check": "node --check portal.js && node --check api/projects.js && node --check api/upload.js && node --check scripts/dev.mjs",
+    "check": "node --check portal.js && node --check api/projects.js && node --check api/announcements.js && node --check api/upload.js && node --check api/_atlas.js && node --check scripts/dev.mjs && node --check scripts/make-course-pack.mjs",
     "build:blob": "esbuild node_modules/@vercel/blob/dist/client.js --bundle --format=esm --platform=browser --minify --outfile=portal-blob-client.js"
   },
   "dependencies": {

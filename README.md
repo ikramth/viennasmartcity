@@ -13,17 +13,22 @@ Le site est un ensemble de pages statiques (HTML/CSS/JS) avec des fonctions serv
 | `vienna.html` | Étude de cas — Vienne (page autonome, `style.css` + `app.js`). |
 | `keb/index.html` | Étude de cas — Ksar El Boukhari × Ville nouvelle de Boughezoul. |
 | `assets/`, `smart_*_pics/` | Médias des études de cas. |
-| `api/` | Fonctions serverless Vercel (`projects`, `upload`). |
+| `api/` | Fonctions serverless Vercel (`projects`, `announcements`, `upload`, helpers `_atlas`). |
+| `cours/` | Les 10 supports de cours PDF du dépôt, générés par `scripts/make-course-pack.mjs`. |
 | `supabase/schema.sql` | Schéma SQL pour le stockage Supabase. |
 | `scripts/dev.mjs` | Serveur de développement statique sans dépendance. |
+| `scripts/make-course-pack.mjs` | Régénère les 10 supports de cours PDF. |
 
 ## Fonctions du portail
 
 - **Corpus compact** : vue grille (3–4 cartes par ligne) ou vue index (tableau académique), bascule mémorisée dans le navigateur.
 - **Recherche, filtres et pagination** : recherche instantanée, filtres par domaine/module, 9/12/24 travaux par page.
 - **Bilingue FR/AR** : couverture, cartes, index, pagination, modales et messages.
-- **Dépôt protégé** : code de cohorte (`ATLAS_CLASS_CODE`, `M1-MEDEA-2026` par défaut), fichiers limités à PDF, PPTX, PNG, JPG/JPEG (20 Mo) et renommés avec un UUID aléatoire.
+- **Suppression par l'auteur** : chaque navigateur reçoit un jeton anonyme (`atlas_owner_token`). Seul le navigateur qui a publié un travail voit « Supprimer » ; le serveur vérifie le hachage SHA-256 du jeton avant de supprimer la fiche et son fichier Blob.
+- **Espace enseignant** : accès avec le code enseignant (`ATLAS_TEACHER_CODE`, `PROF-MEDEA-2026` par défaut). Il peut publier ou supprimer des supports de cours, des annonces et des notes sur un travail, et supprimer n'importe quelle fiche.
+- **Dépôt protégé** : code de section (`ATLAS_CLASS_CODE`, `M1-MEDEA-2026` par défaut), fichiers limités à PDF, PPTX, PNG, JPG/JPEG (20 Mo) et renommés avec un UUID aléatoire.
 - **Stockage optionnel** : local (`localStorage`) ou synchronisé via Vercel Blob / KV / Supabase.
+- **Mise à zéro unique** : au premier appel API après déploiement, les anciennes données de test et fichiers Blob sont purgés une seule fois (marqueur `atlas:clean-slate:v1` / `atlas/clean-slate.json`).
 
 ## Démarrage local
 
@@ -53,13 +58,14 @@ npm run dev:vercel
    - ou Supabase → exécuter `supabase/schema.sql`, puis renseigner `SUPABASE_URL` + `SUPABASE_ANON_KEY`.
 3. Redéployer. Le portail détecte automatiquement le stockage via `GET /api/projects` et bascule du mode local au mode synchronisé.
 
-Variables disponibles : voir `.env.example`. `ATLAS_CLASS_CODE` protège les dépôts et les uploads (valeur par défaut : `M1-MEDEA-2026` ; `off` pour ouvrir le portail). En mode local/démo, le même code est vérifié côté navigateur via `LOCAL_CLASS_CODE` dans `portal.js` — il s'agit d'un garde-fou pédagogique, l'application réelle est assurée côté serveur.
+Variables disponibles : voir `.env.example`. `ATLAS_CLASS_CODE` protège les dépôts et les uploads (valeur par défaut : `M1-MEDEA-2026` ; `off` pour ouvrir le portail). `ATLAS_TEACHER_CODE` ouvre l'espace enseignant (valeur par défaut : `PROF-MEDEA-2026`). En mode local/démo, les mêmes codes sont vérifiés côté navigateur via `LOCAL_CLASS_CODE` et `LOCAL_TEACHER_CODE` dans `portal.js` — il s'agit d'un garde-fou pédagogique, l'application réelle est assurée côté serveur.
 
 ## Vérifications
 
 ```bash
-npm run check        # syntaxe des scripts JS
+npm run check        # syntaxe des scripts JS et des fonctions API
 npm run build:blob   # régénère portal-blob-client.js (upload direct vers Blob)
+node scripts/make-course-pack.mjs   # régénère les 10 supports PDF dans cours/
 ```
 
 ## Licence

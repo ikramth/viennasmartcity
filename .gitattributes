@@ -1,0 +1,15 @@
+# Keep line endings predictable across platforms.
+* text=auto
+
+# Binary assets must never be normalised (PDF offsets and xref tables are byte-exact).
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary

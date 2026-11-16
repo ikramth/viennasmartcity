@@ -11,14 +11,22 @@
   var LS_LANG = "atlas.lang";
   var LS_CODE = "atlas.code";
   var LS_VIEW = "atlas.view";
+  var LS_OWNER = "atlas_owner_token";
+  var LS_CLEAN = "atlas.clean-slate.v1";
+  var LS_TEACHER_FEED = "atlas.teacher.feed.v1";
+  var LS_TEACHER_HIDDEN = "atlas.teacher.hidden.v1";
+  var SS_TEACHER_CODE = "atlas.teacher.code";
   var LOCAL_FILE_MAX = 1.6 * 1024 * 1024; // localStorage quota safety
   var MAX_FILE = 20 * 1024 * 1024;
 
-  /* Cohort gate. In cloud mode the server validates ATLAS_CLASS_CODE
+  /* Section gate. In cloud mode the server validates ATLAS_CLASS_CODE
      (see api/projects.js and api/upload.js). This local constant is the
      fallback gate used when the portal runs in localStorage mode, and is
      also the default value documented in .env.example. */
   var LOCAL_CLASS_CODE = "M1-MEDEA-2026";
+  /* Teacher space. The server validates ATLAS_TEACHER_CODE; this is the
+     local/demo fallback (and the documented default). */
+  var LOCAL_TEACHER_CODE = "PROF-MEDEA-2026";
 
   var PAGE_SIZE = 12;
   var PAGE_SIZES = [9, 12, 24];
@@ -87,14 +95,152 @@
     }
   ];
 
-  /* ---------- UI strings ---------- */
+  /* ---------- Teacher space — bundled course supports (10) ---------- */
+  var COURSE_SUPPORTS = [
+    {
+      id: "course-scf-frameworks",
+      kind: "resource",
+      title: "SCF — Cadres conceptuels de la ville intelligente",
+      body: "Frameworks, dimensions et grille de lecture comparative des modèles de smart city.",
+      fileUrl: "cours/01-scf-cadres-conceptuels.pdf",
+      fileName: "01-scf-cadres-conceptuels.pdf",
+      seeded: true,
+      createdAt: "2026-09-08T08:00:00.000Z"
+    },
+    {
+      id: "course-scf-iso",
+      kind: "resource",
+      title: "SCF — Indicateurs ISO 37120 / 37122",
+      body: "Méthode de lecture et d'usage des indicateurs de performance urbaine.",
+      fileUrl: "cours/02-scf-indicateurs-iso.pdf",
+      fileName: "02-scf-indicateurs-iso.pdf",
+      seeded: true,
+      createdAt: "2026-09-10T08:00:00.000Z"
+    },
+    {
+      id: "course-scf-governance",
+      kind: "resource",
+      title: "SCF — Gouvernance ouverte et données urbaines",
+      body: "Open data, budget participatif, plateformes citoyennes et évaluation de la maturité.",
+      fileUrl: "cours/03-scf-gouvernance-ouverte.pdf",
+      fileName: "03-scf-gouvernance-ouverte.pdf",
+      seeded: true,
+      createdAt: "2026-09-12T08:00:00.000Z"
+    },
+    {
+      id: "course-oupti-pdau",
+      kind: "resource",
+      title: "OUPTI — Diagnostic territorial et lecture PDAU",
+      body: "Armature urbaine, instruments de planification et lecture critique du PDAU.",
+      fileUrl: "cours/04-oupti-diagnostic-pdau.pdf",
+      fileName: "04-oupti-diagnostic-pdau.pdf",
+      seeded: true,
+      createdAt: "2026-09-14T08:00:00.000Z"
+    },
+    {
+      id: "course-oupti-sig",
+      kind: "resource",
+      title: "OUPTI — SIG et analyses spatiales appliquées",
+      body: "Projections, couches, requêtes spatiales et cartographie thématique.",
+      fileUrl: "cours/05-oupti-sig-analyse-spatiale.pdf",
+      fileName: "05-oupti-sig-analyse-spatiale.pdf",
+      seeded: true,
+      createdAt: "2026-09-16T08:00:00.000Z"
+    },
+    {
+      id: "course-oupti-mobility",
+      kind: "resource",
+      title: "OUPTI — Mobilité multimodale et transport intelligent",
+      body: "Diagnostic des déplacements, intermodalité, ITS et indicateurs d'accessibilité.",
+      fileUrl: "cours/06-oupti-mobilite-multimodale.pdf",
+      fileName: "06-oupti-mobilite-multimodale.pdf",
+      seeded: true,
+      createdAt: "2026-09-18T08:00:00.000Z"
+    },
+    {
+      id: "course-oupti-energy",
+      kind: "resource",
+      title: "OUPTI — Énergie, réseaux et ville bas carbone",
+      body: "Réseaux intelligents, efficacité énergétique et trajectoires de décarbonation.",
+      fileUrl: "cours/07-oupti-energie-reseaux.pdf",
+      fileName: "07-oupti-energie-reseaux.pdf",
+      seeded: true,
+      createdAt: "2026-09-20T08:00:00.000Z"
+    },
+    {
+      id: "course-oupti-circular",
+      kind: "resource",
+      title: "OUPTI — Économie circulaire et gestion des déchets",
+      body: "Flux de matière, collecte, valorisation et indicateurs de circularité.",
+      fileUrl: "cours/08-oupti-economie-circulaire.pdf",
+      fileName: "08-oupti-economie-circulaire.pdf",
+      seeded: true,
+      createdAt: "2026-09-22T08:00:00.000Z"
+    },
+    {
+      id: "course-atelier-vienna",
+      kind: "resource",
+      title: "Atelier — Étude de cas Vienne (méthode)",
+      body: "Grille d'analyse appliquée à la trajectoire viennoise et à ses indicateurs.",
+      fileUrl: "cours/09-atelier-vienne.pdf",
+      fileName: "09-atelier-vienne.pdf",
+      seeded: true,
+      createdAt: "2026-09-24T08:00:00.000Z"
+    },
+    {
+      id: "course-atelier-boughezoul",
+      kind: "resource",
+      title: "Atelier — Étude de cas Boughezoul (méthode)",
+      body: "Diagnostic comparé Ksar El Boukhari × ville nouvelle de Boughezoul.",
+      fileUrl: "cours/10-atelier-boughezoul.pdf",
+      fileName: "10-atelier-boughezoul.pdf",
+      seeded: true,
+      createdAt: "2026-09-26T08:00:00.000Z"
+    }
+  ];
+
+  var SEED_ANNOUNCEMENTS = [
+    {
+      id: "prof-note-method",
+      kind: "remark",
+      title: "Note méthodologique — qualité des sources",
+      body: "Privilégier les sources primaires (PDAU, rapports municipaux, jeux de données ouverts) et justifier chaque indicateur mobilisé. Les comparaisons internationales doivent expliciter leur grille de lecture.",
+      seeded: true,
+      createdAt: "2026-09-28T09:00:00.000Z"
+    }
+  ];
+
   var T = {
     fr: {
       read: "Lire l’étude",
       openStudy: "Ouvrir l’étude",
       download: "Télécharger le fichier",
-      delete: "Retirer du corpus",
-      deleteConfirm: "Retirer cette recherche du corpus local ? Cette action est irréversible.",
+      delete: "Supprimer",
+      deleteConfirm: "Supprimer cette recherche du corpus ? Cette action est irréversible.",
+      deleteOk: "Recherche supprimée du corpus.",
+      teacherDeleteConfirm: "Supprimer cette publication ? Cette action est irréversible.",
+      errDelete: "Suppression impossible : ce travail n'a pas été créé depuis ce navigateur.",
+      errDeleteCloud: "La suppression a échoué. Réessayez.",
+      errCode: "Code de section incorrect.",
+      teacherLastNote: "Dernière Note",
+      teacherLastNoteEmpty: "Aucune note de l'enseignant pour le moment.",
+      teacherUnlocked: "Mode enseignant actif",
+      teacherPublished: "Publication ajoutée à l'espace enseignant.",
+      teacherSavedLocal: "Publication conservée sur cet appareil.",
+      teacherDeleted: "Publication supprimée.",
+      teacherHidden: "Support retiré de la liste.",
+      errTeacherCode: "Code enseignant incorrect.",
+      errTeacherTitle: "Le titre de la publication est obligatoire.",
+      errTeacherContent: "Ajoutez un message, un lien ou un fichier.",
+      errTeacherProject: "Choisissez le projet concerné par la note.",
+      noteOnProject: "Note sur un projet",
+      projectLabel: "Projet concerné",
+      feedAnnouncement: "Annonce",
+      feedRemark: "Remarque",
+      feedNote: "Note",
+      feedResource: "Support",
+      courseSupports: "Supports de cours",
+      courseDownload: "Télécharger le support",
       copyLink: "Copier le lien",
       linkCopied: "Lien de l’étude copié.",
       sqlCopied: "Schéma SQL copié.",
@@ -121,7 +267,6 @@
       errBigFile: "Fichier trop volumineux (20 Mo maximum).",
       errLocalFile: "En mode local, un fichier de plus de 1,6 Mo ne peut pas être conservé. Ajoutez plutôt un lien.",
       errCloud: "La publication a échoué. Réessayez ou ajoutez un lien.",
-      errCode: "Code de cohorte incorrect.",
       errGeneric: "Une erreur est survenue. Réessayez.",
       cloudTesting: "Test de la connexion au stockage…",
       cloudLocalToast: "Aucun stockage cloud détecté : le portail reste en mode local.",
@@ -155,8 +300,32 @@
       read: "اقرأ الدراسة",
       openStudy: "افتح الدراسة",
       download: "تحميل الملف",
-      delete: "حذف من الفهرس",
-      deleteConfirm: "هل تريد حذف هذا البحث من الفهرس المحلي؟ لا يمكن التراجع عن هذا الإجراء.",
+      delete: "حذف",
+      deleteConfirm: "هل تريد حذف هذا البحث من الفهرس؟ لا يمكن التراجع عن هذا الإجراء.",
+      deleteOk: "تم حذف البحث من الفهرس.",
+      teacherDeleteConfirm: "هل تريد حذف هذا المنشور؟ لا يمكن التراجع عن هذا الإجراء.",
+      errDelete: "لا يمكن الحذف: هذا العمل لم يُنشأ من هذا المتصفح.",
+      errDeleteCloud: "فشل الحذف. أعد المحاولة.",
+      errCode: "رمز الدفعة غير صحيح.",
+      teacherLastNote: "آخر ملاحظة",
+      teacherLastNoteEmpty: "لا توجد ملاحظة للأستاذ حالياً.",
+      teacherUnlocked: "وضع الأستاذ مفعّل",
+      teacherPublished: "تمت إضافة المنشور إلى فضاء الأستاذ.",
+      teacherSavedLocal: "تم حفظ المنشور على هذا الجهاز.",
+      teacherDeleted: "تم حذف المنشور.",
+      teacherHidden: "تم إخفاء الدعامة من القائمة.",
+      errTeacherCode: "رمز الأستاذ غير صحيح.",
+      errTeacherTitle: "عنوان المنشور مطلوب.",
+      errTeacherContent: "أضف رسالة أو رابطاً أو ملفاً.",
+      errTeacherProject: "اختر المشروع المعني بالملاحظة.",
+      noteOnProject: "ملاحظة على مشروع",
+      projectLabel: "المشروع المعني",
+      feedAnnouncement: "إعلان",
+      feedRemark: "ملاحظة",
+      feedNote: "ملاحظة",
+      feedResource: "دعامة",
+      courseSupports: "الدعامات الدراسية",
+      courseDownload: "تحميل الدعامة",
       copyLink: "نسخ الرابط",
       linkCopied: "تم نسخ رابط الدراسة.",
       sqlCopied: "تم نسخ مخطط SQL.",
@@ -183,7 +352,6 @@
       errBigFile: "الملف كبير جداً (20 ميغابايت كحد أقصى).",
       errLocalFile: "في الوضع المحلي، لا يمكن حفظ ملف يتجاوز 1.6 ميغابايت. أضف رابطاً بدلاً من ذلك.",
       errCloud: "فشل النشر. أعد المحاولة أو أضف رابطاً.",
-      errCode: "رمز الفوج غير صحيح.",
       errGeneric: "حدث خطأ. أعد المحاولة.",
       cloudTesting: "جارٍ اختبار الاتصال بالتخزين…",
       cloudLocalToast: "لم يُكتشف تخزين سحابي: تبقى البوابة في الوضع المحلي.",
@@ -225,7 +393,7 @@
       "f-summary": "Problématique, méthode, données mobilisées, résultats principaux…",
       "f-keywords": "IoT, SIG/GIS, Transport, Énergie, PDAU",
       "f-link": "https://…",
-      "f-code": "Code de cohorte M1"
+      "f-code": "Code de section M1"
     },
     ar: {
       searchInput: "ابحث عن مدينة، مؤلف، كلمة مفتاحية…",
@@ -236,7 +404,7 @@
       "f-summary": "الإشكالية، المنهج، المعطيات المستعملة، أهم النتائج…",
       "f-keywords": "IoT، نظم المعلومات الجغرافية، النقل، الطاقة، PDAU",
       "f-link": "https://…",
-      "f-code": "رمز فوج ماستر 1"
+      "f-code": "رمز دفعة ماستر 1"
     }
   };
 
@@ -257,7 +425,14 @@
     file: null,
     busy: false,
     lastFocus: null,
-    newId: null
+    newId: null,
+    ownerHash: "",
+    teacher: false,
+    teacherCode: "",
+    announcements: [],
+    localAnnouncements: [],
+    teacherBusy: false,
+    teacherFile: null
   };
 
   var els = {};
@@ -469,6 +644,135 @@
     try { return window.localStorage.getItem(LS_CODE) || ""; } catch (_) { return ""; }
   }
 
+  /* ---------- Owner token (no password) ---------- */
+  function ownerToken() {
+    try {
+      var token = window.localStorage.getItem(LS_OWNER);
+      if (!token) {
+        token = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : fileUuid();
+        window.localStorage.setItem(LS_OWNER, token);
+      }
+      return token;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function hashOwnerToken(token) {
+    if (!token) return "";
+    if (!(window.crypto && window.crypto.subtle)) return "";
+    try {
+      var bytes = new TextEncoder().encode(token);
+      var digest = await window.crypto.subtle.digest("SHA-256", bytes);
+      return Array.prototype.map.call(new Uint8Array(digest), function (b) {
+        return b.toString(16).padStart(2, "0");
+      }).join("");
+    } catch (_) {
+      return "";
+    }
+  }
+
+  /* One-time local clean slate: drop test entries so the browser also starts
+     with only the two founding studies. */
+  function cleanSlateLocal() {
+    try {
+      if (window.localStorage.getItem(LS_CLEAN)) return;
+      window.localStorage.removeItem(LS_CORPUS);
+      window.localStorage.removeItem(LS_TEACHER_FEED);
+      window.localStorage.removeItem(LS_TEACHER_HIDDEN);
+      window.localStorage.setItem(LS_CLEAN, new Date().toISOString());
+    } catch (_) { /* private mode */ }
+  }
+
+  /* ---------- Teacher session ---------- */
+  function savedTeacherCode() {
+    try { return window.sessionStorage.getItem(SS_TEACHER_CODE) || ""; } catch (_) { return ""; }
+  }
+
+  function unlockTeacher(code) {
+    state.teacher = true;
+    state.teacherCode = code || state.teacherCode || "";
+    try { if (state.teacherCode) window.sessionStorage.setItem(SS_TEACHER_CODE, state.teacherCode); } catch (_) { /* no-op */ }
+    renderCorpus();
+    renderTeacher();
+  }
+
+  function canDeleteProject(raw) {
+    if (!raw) return false;
+    if (raw.source === "seed") return false;
+    if (state.teacher) return true;
+    if (raw.owned === true) return true;
+    if (raw.ownerHash && state.ownerHash && String(raw.ownerHash).toLowerCase() === state.ownerHash) return true;
+    return false;
+  }
+
+  /* ---------- Teacher feed (local mirror + seeds) ---------- */
+  function readLocalAnnouncements() {
+    try {
+      var raw = window.localStorage.getItem(LS_TEACHER_FEED);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter(function (a) { return a && a.id; }) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveLocalAnnouncements() {
+    try {
+      window.localStorage.setItem(LS_TEACHER_FEED, JSON.stringify(state.localAnnouncements));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function hiddenTeacherIds() {
+    try {
+      var raw = window.localStorage.getItem(LS_TEACHER_HIDDEN);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function hideTeacherItem(id, hidden) {
+    var list = hiddenTeacherIds().filter(function (x) { return x !== id; });
+    if (hidden) list.push(id);
+    try { window.localStorage.setItem(LS_TEACHER_HIDDEN, JSON.stringify(list)); } catch (_) { /* no-op */ }
+  }
+
+  function allTeacherItems() {
+    var hidden = hiddenTeacherIds();
+    var seen = {};
+    var out = [];
+    var push = function (item) {
+      if (!item || !item.id || seen[item.id] || hidden.indexOf(item.id) !== -1) return;
+      seen[item.id] = true;
+      out.push(item);
+    };
+    state.localAnnouncements.forEach(push);
+    state.announcements.forEach(push);
+    SEED_ANNOUNCEMENTS.forEach(push);
+    COURSE_SUPPORTS.forEach(push);
+    out.sort(function (a, b) {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+    return out;
+  }
+
+  function visibleCourses() {
+    return allTeacherItems().filter(function (a) {
+      return a.kind === "resource" && a.fileUrl;
+    });
+  }
+
+  function latestTeacherNote() {
+    return allTeacherItems().filter(function (a) {
+      return a.kind === "remark" || a.kind === "note";
+    })[0] || null;
+  }
+
   /* ---------- Language ---------- */
   function applyLang(lang, persist) {
     state.lang = lang === "ar" ? "ar" : "fr";
@@ -527,6 +831,7 @@
     var featured = allProjects().filter(function (p) { return p.featured; }).length;
 
     if (els.coverCount) els.coverCount.textContent = pad(featured);
+    if (els.coverFloatCount) els.coverFloatCount.textContent = pad(featured);
     if (els.statFeatured) els.statFeatured.textContent = pad(featured);
     if (els.statTotal) els.statTotal.textContent = pad(total);
     if (els.corpusCount) els.corpusCount.textContent = pad(list.length);
@@ -670,6 +975,9 @@
     }).join("");
     var extra = (p.keywords || []).length > 3 ? '<li class="tag">+' + (p.keywords.length - 3) + '</li>' : "";
     var place = [p.city, p.country].filter(Boolean).join(" · ");
+    var removeBtn = canDeleteProject(raw)
+      ? '<button class="project-card__delete" type="button" data-delete="' + esc(p.id) + '" aria-label="' + esc(t("delete")) + '" title="' + esc(t("delete")) + '">' + icons("trash") + '</button>'
+      : "";
     return (
       '<article class="project-card' + (state.newId === p.id ? " is-new" : "") + '" ' +
         'role="button" tabindex="0" data-id="' + esc(p.id) + '" ' +
@@ -678,7 +986,10 @@
         '<div class="project-card__body">' +
           '<div class="project-card__top">' +
             '<span class="project-card__module" data-module="' + esc(p.module) + '">' + esc(p.module) + '</span>' +
-            '<span class="project-card__flag">' + esc(p.category === "algeria" ? "DZ" : "INTL") + '</span>' +
+            '<span class="project-card__top-end">' +
+              '<span class="project-card__flag">' + esc(p.category === "algeria" ? "DZ" : "INTL") + '</span>' +
+              removeBtn +
+            '</span>' +
           '</div>' +
           (place ? '<p class="project-card__place">' + icons("pin") + '<span>' + esc(place) + '</span></p>' : "") +
           '<h3>' + esc(p.title) + '</h3>' +
@@ -817,7 +1128,7 @@
     if (p.fileUrl) {
       actions.push('<a class="btn btn--ghost" href="' + esc(p.fileUrl) + '" download="' + esc(p.fileName || "") + '" target="_blank" rel="noopener">' + icons("download") + esc(t("download")) + '</a>');
     }
-    if (raw.source === "local") {
+    if (canDeleteProject(raw)) {
       actions.push('<button class="btn btn--ghost" type="button" data-action="delete" data-id="' + esc(p.id) + '">' + icons("trash") + esc(t("delete")) + '</button>');
     }
     if (!actions.length) {
@@ -837,16 +1148,53 @@
     }
   }
 
-  function deleteProject(id) {
+  async function deleteProject(id) {
+    var raw = allProjects().filter(function (p) { return p.id === id; })[0];
+    if (!raw) return;
+    if (!canDeleteProject(raw)) {
+      toast(t("errDelete"), "error");
+      return;
+    }
     if (!window.confirm(t("deleteConfirm"))) return;
+
+    var isLocal = raw.source === "local" || state.local.some(function (p) { return p.id === id; });
+    if (!isLocal && state.cloud.mode === "cloud") {
+      try {
+        var res = await fetch("api/projects", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            id: id,
+            ownerToken: ownerToken(),
+            code: state.teacher ? state.teacherCode : ""
+          })
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok || !data || data.ok !== true) {
+          if (res.status === 403 || (data && data.error === "not-owner")) {
+            toast(t("errDelete"), "error");
+            return;
+          }
+          throw new Error((data && data.error) || t("errDeleteCloud"));
+        }
+        state.remote = state.remote.filter(function (p) { return p.id !== id; });
+      } catch (err) {
+        toast((err && err.message) || t("errDeleteCloud"), "error");
+        return;
+      }
+    }
+
+    // Also remove a browser-side copy (offline fallback or local mode).
+    var before = state.local.length;
     state.local = state.local.filter(function (p) { return p.id !== id; });
-    if (!saveLocal()) {
+    if (state.local.length !== before && !saveLocal()) {
       toast(t("errGeneric"), "error");
       return;
     }
+
     closeDetail();
     renderCorpus();
-    toast(t("delete"), "ok");
+    toast(t("deleteOk"), "ok");
   }
 
   async function copyText(text) {
@@ -881,10 +1229,15 @@
       toast(t("cloudTesting"));
     }
 
+    if (!state.ownerHash) state.ownerHash = await hashOwnerToken(ownerToken());
+
     var next = { mode: "local", db: "none", files: false, provider: "localStorage", requireCode: false };
     try {
       var res = await fetch("api/projects?meta=1", {
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          "X-Atlas-Owner": state.ownerHash || ""
+        },
         cache: "no-store"
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
@@ -904,6 +1257,7 @@
     state.cloud = next;
     updateCloudUI();
     renderCorpus();
+    await loadAnnouncements();
 
     // A shared study link may have arrived before the cloud list did.
     if (location.hash.indexOf("#etude=") === 0 && !state.selected) {
@@ -976,11 +1330,11 @@
       setBilingual(
         els.codeHint,
         cloud
-          ? "Dépôt partagé protégé par le code de cohorte. Demandez-le au Dr. Khoukhi."
-          : "Le dépôt est protégé par le code de cohorte de la promotion. Demandez-le au Dr. Khoukhi.",
+          ? "Dépôt partagé protégé par le code de section. Demandez-le au Dr. Khoukhi."
+          : "Le dépôt est protégé par le code de section de la promotion. Demandez-le au Dr. Khoukhi.",
         cloud
-          ? "الرفع المشترك محمي برمز الفوج. اطلبه من الدكتور خوكي."
-          : "الرفع محمي برمز فوج الماستر. اطلبه من الدكتور خوكي."
+          ? "الرفع المشترك محمي برمز الدفعة. اطلبه من الدكتور خوكي."
+          : "الرفع محمي برمز دفعة الماستر. اطلبه من الدكتور خوكي."
       );
     }
   }
@@ -1121,6 +1475,8 @@
     setBusy(true);
     setProgress(4, t("saving"));
 
+    if (!state.ownerHash) state.ownerHash = await hashOwnerToken(ownerToken());
+
     var id = uid();
     var project = {
       id: id,
@@ -1135,6 +1491,7 @@
       link: link,
       fileUrl: "",
       fileName: "",
+      ownerHash: state.ownerHash || "",
       featured: false,
       source: state.cloud.mode === "cloud" ? "cloud" : "local",
       createdAt: new Date().toISOString()
@@ -1274,6 +1631,381 @@
 
   function clearFile() { setFile(null); }
 
+  /* ---------- Teacher space ---------- */
+  function teacherKindLabel(kind) {
+    if (kind === "announcement") return t("feedAnnouncement");
+    if (kind === "remark") return t("feedRemark");
+    if (kind === "note") return t("feedNote");
+    return t("feedResource");
+  }
+
+  function renderTeacher() {
+    if (!els.teacherFeed) return;
+    var courses = visibleCourses();
+    var items = allTeacherItems().filter(function (a) { return a.kind !== "resource"; });
+
+    if (els.teacherCourseCount) els.teacherCourseCount.textContent = String(courses.length);
+    if (els.teacherCourseList) {
+      els.teacherCourseList.innerHTML = courses.length
+        ? courses.map(function (c, i) {
+            var remove = state.teacher
+              ? '<button class="course-row__delete" type="button" data-teacher-delete="' + esc(c.id) + '" aria-label="' + esc(t("delete")) + '" title="' + esc(t("delete")) + '">' + icons("trash") + '</button>'
+              : "";
+            return (
+              '<li class="course-row">' +
+                '<a class="course-row__link" href="' + esc(c.fileUrl) + '" download="' + esc(c.fileName || "") + '" target="_blank" rel="noopener">' +
+                  '<span class="course-row__no">' + pad(i + 1) + '</span>' +
+                  '<span class="course-row__title">' + esc(c.title) + '</span>' +
+                  '<span class="course-row__ext">PDF</span>' +
+                  icons("download") +
+                '</a>' +
+                remove +
+              '</li>'
+            );
+          }).join("")
+        : '<li class="course-row course-row--empty">' + esc(t("teacherLastNoteEmpty")) + "</li>";
+    }
+
+    if (els.teacherFeed) {
+      els.teacherFeed.innerHTML = items.map(function (item) {
+        var remove = state.teacher
+          ? '<button class="teacher-post__delete" type="button" data-teacher-delete="' + esc(item.id) + '" aria-label="' + esc(t("delete")) + '" title="' + esc(t("delete")) + '">' + icons("trash") + '</button>'
+          : "";
+        var actions = [];
+        if (item.link) {
+          actions.push('<a class="teacher-post__action" href="' + esc(item.link) + '" target="_blank" rel="noopener">' + icons("external") + esc(t("openStudy")) + '</a>');
+        }
+        if (item.fileUrl) {
+          actions.push('<a class="teacher-post__action" href="' + esc(item.fileUrl) + '" download="' + esc(item.fileName || "") + '" target="_blank" rel="noopener">' + icons("download") + esc(t("download")) + '</a>');
+        }
+        return (
+          '<article class="teacher-post" data-kind="' + esc(item.kind) + '">' +
+            '<div class="teacher-post__top">' +
+              '<span class="teacher-post__kind">' + esc(teacherKindLabel(item.kind)) + '</span>' +
+              '<span class="teacher-post__date">' + esc(formatDate(item.createdAt)) + '</span>' +
+              remove +
+            '</div>' +
+            '<h3>' + esc(item.title) + '</h3>' +
+            (item.body ? '<p>' + esc(item.body) + '</p>' : "") +
+            (item.projectId ? '<p class="teacher-post__project">' + esc(t("projectLabel")) + " · " + esc(projectTitle(item.projectId)) + '</p>' : "") +
+            (actions.length ? '<div class="teacher-post__actions">' + actions.join("") + '</div>' : "") +
+          '</article>'
+        );
+      }).join("");
+    }
+
+    if (els.teacherEmpty) els.teacherEmpty.hidden = items.length > 0;
+    if (els.teacherUnlockState) els.teacherUnlockState.hidden = !state.teacher;
+
+    var note = latestTeacherNote();
+    if (els.teacherNoteText) {
+      els.teacherNoteText.textContent = note
+        ? (note.body || note.title || t("teacherLastNoteEmpty"))
+        : t("teacherLastNoteEmpty");
+    }
+    if (els.teacherNoteMeta) {
+      els.teacherNoteMeta.textContent = note
+        ? [note.title, note.projectId ? projectTitle(note.projectId) : "", formatDate(note.createdAt)]
+            .filter(Boolean).join(" · ")
+        : "";
+    }
+  }
+
+  function projectTitle(id) {
+    var raw = allProjects().filter(function (p) { return p.id === id; })[0];
+    return raw ? localize(raw).title : id;
+  }
+
+  async function loadAnnouncements() {
+    state.localAnnouncements = readLocalAnnouncements();
+    state.announcements = [];
+    if (state.cloud.mode === "cloud") {
+      try {
+        var res = await fetch("api/announcements", {
+          headers: { Accept: "application/json" },
+          cache: "no-store"
+        });
+        if (res.ok) {
+          var data = await res.json();
+          if (data && data.ok && Array.isArray(data.announcements)) {
+            state.announcements = data.announcements.filter(function (a) { return a && a.id; });
+          }
+        }
+      } catch (_) { /* keep local mirror */ }
+    }
+    renderTeacher();
+  }
+
+  async function verifyTeacherCode(code) {
+    if (state.cloud.mode !== "cloud") {
+      if (norm(code) !== norm(LOCAL_TEACHER_CODE)) {
+        var localErr = new Error(t("errTeacherCode"));
+        localErr.isAuth = true;
+        throw localErr;
+      }
+      return true;
+    }
+    var res = await fetch("api/announcements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ verifyCode: true, code: code })
+    });
+    if (res.status === 401) {
+      var authErr = new Error(t("errTeacherCode"));
+      authErr.isAuth = true;
+      throw authErr;
+    }
+    if (!res.ok) throw new Error(t("errCloud"));
+    return true;
+  }
+
+  function showTeacherError(message) {
+    if (!els.teacherError) return;
+    els.teacherError.textContent = message;
+    els.teacherError.hidden = false;
+  }
+
+  function syncTeacherKind() {
+    if (!els.teacherKind || !els.teacherProjectField) return;
+    var isNote = els.teacherKind.value === "note";
+    els.teacherProjectField.hidden = !isNote;
+    if (els.teacherProject) els.teacherProject.required = isNote;
+  }
+
+  function fillTeacherProjects() {
+    if (!els.teacherProject) return;
+    var current = els.teacherProject.value;
+    var options = allProjects().map(function (raw) {
+      var p = localize(raw);
+      return '<option value="' + esc(p.id) + '">' + esc(p.title) + '</option>';
+    }).join("");
+    els.teacherProject.innerHTML = '<option value="">—</option>' + options;
+    if (current) els.teacherProject.value = current;
+  }
+
+  function openTeacherModal() {
+    if (!els.teacherModal) return;
+    if (els.teacherError) {
+      els.teacherError.hidden = true;
+      els.teacherError.textContent = "";
+    }
+    if (els.teacherCodeInput) els.teacherCodeInput.value = state.teacherCode || savedTeacherCode();
+    if (els.teacherKind) els.teacherKind.value = "announcement";
+    fillTeacherProjects();
+    syncTeacherKind();
+    resetTeacherFileUI();
+    openModal(els.teacherModal);
+  }
+
+  function setTeacherBusy(busy) {
+    state.teacherBusy = busy;
+    if (els.teacherSubmitBtn) {
+      els.teacherSubmitBtn.disabled = busy;
+      els.teacherSubmitBtn.classList.toggle("is-loading", busy);
+    }
+  }
+
+  async function handleTeacherSubmit(e) {
+    e.preventDefault();
+    if (state.teacherBusy) return;
+
+    var form = els.teacherForm;
+    var code = form.elements.code.value.trim();
+    var kind = form.elements.kind.value;
+    var title = form.elements.title.value.trim();
+    var body = form.elements.body.value.trim();
+    var link = form.elements.link.value.trim();
+    var projectId = els.teacherProject ? els.teacherProject.value : "";
+    var file = state.teacherFile;
+
+    var fail = function (message, field) {
+      showTeacherError(message);
+      if (field && typeof field.focus === "function") field.focus();
+    };
+
+    if (!code) return fail(t("errTeacherCode"), els.teacherCodeInput);
+    if (!title) return fail(t("errTeacherTitle"), form.elements.title);
+    if (kind === "note" && !projectId) return fail(t("errTeacherProject"), els.teacherProject);
+    if (!body && !link && !file) return fail(t("errTeacherContent"), form.elements.body);
+    if (link && !/^https?:\/\/\S+$/i.test(link)) return fail(t("errLink"), form.elements.link);
+    if (file && !fileTypeAllowed(file)) return fail(t("errFileType"), els.teacherFileInput);
+    if (file && file.size > MAX_FILE) return fail(t("errBigFile"), els.teacherFileInput);
+    if (file && state.cloud.mode !== "cloud" && file.size > LOCAL_FILE_MAX) {
+      return fail(t("errLocalFile"), els.teacherFileInput);
+    }
+
+    if (els.teacherError) els.teacherError.hidden = true;
+    setTeacherBusy(true);
+
+    try {
+      await verifyTeacherCode(code);
+      unlockTeacher(code);
+
+      var item = {
+        id: uid(),
+        kind: kind,
+        title: title,
+        body: body,
+        link: link,
+        fileUrl: "",
+        fileName: "",
+        projectId: kind === "note" ? projectId : "",
+        createdAt: new Date().toISOString(),
+        source: state.cloud.mode === "cloud" ? "cloud" : "local"
+      };
+
+      if (file) {
+        if (state.cloud.mode === "cloud" && state.cloud.files) {
+          item.fileUrl = await uploadToBlob(file, code, function () { /* progress handled by modal status */ });
+          item.fileName = displayFileName(file.name);
+        } else {
+          item.fileUrl = await readFileAsDataURL(file);
+          item.fileName = displayFileName(file.name);
+        }
+      }
+
+      if (state.cloud.mode === "cloud") {
+        try {
+          var res = await fetch("api/announcements", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ code: code, item: item })
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (!res.ok || !data || data.ok !== true) {
+            if (res.status === 401 || (data && data.error === "invalid-teacher-code")) {
+              var authErr = new Error(t("errTeacherCode"));
+              authErr.isAuth = true;
+              throw authErr;
+            }
+            throw new Error((data && data.error) || t("errCloud"));
+          }
+          if (data.announcement) item = data.announcement;
+          state.announcements.unshift(item);
+          resetTeacherForm();
+          renderTeacher();
+          closeModal(els.teacherModal);
+          toast(t("teacherPublished"), "ok");
+        } catch (cloudErr) {
+          if (cloudErr && cloudErr.isAuth) throw cloudErr;
+          // Keep the teacher's work rather than losing it.
+          item.source = "local";
+          state.localAnnouncements.unshift(item);
+          if (!saveLocalAnnouncements()) throw cloudErr;
+          resetTeacherForm();
+          renderTeacher();
+          closeModal(els.teacherModal);
+          toast(t("teacherSavedLocal"));
+        }
+      } else {
+        state.localAnnouncements.unshift(item);
+        if (!saveLocalAnnouncements()) throw new Error(t("errGeneric"));
+        resetTeacherForm();
+        renderTeacher();
+        closeModal(els.teacherModal);
+        toast(t("teacherPublished"), "ok");
+      }
+    } catch (err) {
+      showTeacherError((err && err.message) || t("errGeneric"));
+    } finally {
+      setTeacherBusy(false);
+    }
+  }
+
+  function resetTeacherForm() {
+    if (els.teacherForm) els.teacherForm.reset();
+    if (els.teacherKind) els.teacherKind.value = "announcement";
+    resetTeacherFileUI();
+    syncTeacherKind();
+  }
+
+  async function deleteTeacherItem(id) {
+    if (!state.teacher) return;
+    var item = allTeacherItems().filter(function (a) { return a.id === id; })[0];
+    if (!item) return;
+    if (!window.confirm(t("teacherDeleteConfirm"))) return;
+
+    // Bundled supports / notes: simply hide them in this browser.
+    if (item.seeded) {
+      hideTeacherItem(id, true);
+      renderTeacher();
+      toast(t("teacherHidden"), "ok");
+      return;
+    }
+
+    var isLocal = item.source === "local" || state.localAnnouncements.some(function (a) { return a.id === id; });
+    if (!isLocal && state.cloud.mode === "cloud") {
+      try {
+        var res = await fetch("api/announcements", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ id: id, code: state.teacherCode || savedTeacherCode() })
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok || !data || data.ok !== true) {
+          toast((data && data.error) || t("errDeleteCloud"), "error");
+          return;
+        }
+        state.announcements = state.announcements.filter(function (a) { return a.id !== id; });
+      } catch (err) {
+        toast(t("errDeleteCloud"), "error");
+        return;
+      }
+    } else {
+      state.localAnnouncements = state.localAnnouncements.filter(function (a) { return a.id !== id; });
+      saveLocalAnnouncements();
+    }
+
+    renderTeacher();
+    toast(t("teacherDeleted"), "ok");
+  }
+
+  function toggleLastNote() {
+    if (!els.teacherNotePanel) return;
+    var open = els.teacherNotePanel.hidden;
+    renderTeacher();
+    els.teacherNotePanel.hidden = !open;
+    els.teacherLastNote.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open && !reducedMotion) {
+      els.teacherNotePanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
+  /* ---------- Teacher file picker ---------- */
+  function resetTeacherFileUI() {
+    state.teacherFile = null;
+    if (!els.teacherFilePill) return;
+    els.teacherFilePill.hidden = true;
+    if (els.teacherFileName) els.teacherFileName.textContent = "";
+    if (els.teacherFileSize) els.teacherFileSize.textContent = "";
+    if (els.teacherFileInput) els.teacherFileInput.value = "";
+  }
+
+  function setTeacherFile(file) {
+    if (file && !fileTypeAllowed(file)) {
+      state.teacherFile = null;
+      resetTeacherFileUI();
+      showTeacherError(t("errFileType"));
+      return false;
+    }
+    if (file && file.size > MAX_FILE) {
+      state.teacherFile = null;
+      resetTeacherFileUI();
+      showTeacherError(t("errBigFile"));
+      return false;
+    }
+    state.teacherFile = file || null;
+    if (!file) {
+      resetTeacherFileUI();
+      return true;
+    }
+    if (els.teacherError) els.teacherError.hidden = true;
+    els.teacherFilePill.hidden = false;
+    if (els.teacherFileName) els.teacherFileName.textContent = displayFileName(file.name);
+    if (els.teacherFileSize) els.teacherFileSize.textContent = formatSize(file.size);
+    return true;
+  }
+
   /* ---------- View routing ---------- */
   function switchView(view, opts) {
     opts = opts || {};
@@ -1298,6 +2030,8 @@
         scrollToSection(els.hubToolbar);
       } else if (opts.scrollTo === "grid") {
         scrollToSection(els.gridWrap);
+      } else if (opts.scrollTo === "teacher") {
+        scrollToSection(els.teacherSection);
       } else {
         window.scrollTo({ top: 0, behavior: "auto" });
       }
@@ -1431,6 +2165,7 @@
     els.canvas = document.getElementById("coverCanvas");
     els.veil = document.getElementById("pageVeil");
     els.coverCount = document.getElementById("coverCount");
+    els.coverFloatCount = document.getElementById("coverFloatCount");
     els.statFeatured = document.getElementById("statFeatured");
     els.statTotal = document.getElementById("statTotal");
     els.cloudStatusBtn = document.getElementById("cloudStatusBtn");
@@ -1475,6 +2210,32 @@
     els.codeHint = document.getElementById("codeHint");
     els.codeToggle = document.getElementById("codeToggle");
     els.tagSuggest = document.getElementById("tagSuggest");
+
+    els.teacherSection = document.getElementById("enseignant");
+    els.teacherFeed = document.getElementById("teacherFeed");
+    els.teacherEmpty = document.getElementById("teacherEmpty");
+    els.teacherCourseList = document.getElementById("teacherCourseList");
+    els.teacherCourseCount = document.getElementById("teacherCourseCount");
+    els.teacherLastNote = document.getElementById("teacherLastNote");
+    els.teacherNotePanel = document.getElementById("teacherNotePanel");
+    els.teacherNoteText = document.getElementById("teacherNoteText");
+    els.teacherNoteMeta = document.getElementById("teacherNoteMeta");
+    els.teacherUnlockState = document.getElementById("teacherUnlockState");
+
+    els.teacherModal = document.getElementById("teacherModal");
+    els.teacherForm = document.getElementById("teacherForm");
+    els.teacherError = document.getElementById("teacherError");
+    els.teacherCodeInput = document.getElementById("t-code");
+    els.teacherKind = document.getElementById("t-kind");
+    els.teacherProjectField = document.getElementById("t-project-field");
+    els.teacherProject = document.getElementById("t-project");
+    els.teacherSubmitBtn = document.getElementById("teacherSubmitBtn");
+    els.teacherFileInput = document.getElementById("t-file");
+    els.teacherFilePill = document.getElementById("teacherFilePill");
+    els.teacherFileName = document.getElementById("teacherFileName");
+    els.teacherFileSize = document.getElementById("teacherFileSize");
+    els.teacherFileRemove = document.getElementById("teacherFileRemove");
+    els.teacherDropZone = document.getElementById("teacherDropZone");
 
     els.detailModal = document.getElementById("detailModal");
     els.detailEyebrow = document.getElementById("detailEyebrow");
@@ -1534,16 +2295,89 @@
 
     // Card interactions (delegation)
     els.grid.addEventListener("click", function (e) {
+      var del = e.target.closest("[data-delete]");
+      if (del) {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteProject(del.getAttribute("data-delete"));
+        return;
+      }
       var card = e.target.closest(".project-card");
       if (card) openDetail(card.getAttribute("data-id"));
     });
     els.grid.addEventListener("keydown", function (e) {
+      if (e.target.closest("[data-delete]")) return;
       if (e.key !== "Enter" && e.key !== " ") return;
       var card = e.target.closest(".project-card");
       if (!card) return;
       e.preventDefault();
       openDetail(card.getAttribute("data-id"));
     });
+
+    // Teacher actions (delegation)
+    if (els.teacherSection) {
+      els.teacherSection.addEventListener("click", function (e) {
+        var del = e.target.closest("[data-teacher-delete]");
+        if (del) {
+          e.preventDefault();
+          deleteTeacherItem(del.getAttribute("data-teacher-delete"));
+        }
+      });
+    }
+    if (els.teacherLastNote) {
+      els.teacherLastNote.addEventListener("click", toggleLastNote);
+    }
+    var openTeacherBtn = document.getElementById("openTeacher");
+    if (openTeacherBtn) openTeacherBtn.addEventListener("click", openTeacherModal);
+    if (els.teacherForm) els.teacherForm.addEventListener("submit", handleTeacherSubmit);
+    if (els.teacherKind) els.teacherKind.addEventListener("change", syncTeacherKind);
+    if (els.teacherCodeInput && document.getElementById("teacherCodeToggle")) {
+      var teacherToggle = document.getElementById("teacherCodeToggle");
+      teacherToggle.addEventListener("click", function () {
+        var show = els.teacherCodeInput.type === "password";
+        els.teacherCodeInput.type = show ? "text" : "password";
+        teacherToggle.setAttribute("aria-pressed", show ? "true" : "false");
+        teacherToggle.setAttribute("aria-label", show ? t("codeHide") : t("codeShow"));
+        var use = teacherToggle.querySelector("use");
+        if (use) use.setAttribute("href", show ? "#ic-eye-off" : "#ic-eye");
+        els.teacherCodeInput.focus();
+      });
+    }
+    if (els.teacherFileInput) {
+      els.teacherFileInput.addEventListener("change", function () {
+        var f = els.teacherFileInput.files && els.teacherFileInput.files[0];
+        setTeacherFile(f || null);
+      });
+    }
+    if (els.teacherFileRemove) {
+      els.teacherFileRemove.addEventListener("click", function (e) {
+        e.preventDefault();
+        resetTeacherFileUI();
+      });
+    }
+    if (els.teacherDropZone) {
+      ["dragenter", "dragover"].forEach(function (evt) {
+        els.teacherDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          els.teacherDropZone.classList.add("is-drag");
+        });
+      });
+      ["dragleave", "dragend"].forEach(function (evt) {
+        els.teacherDropZone.addEventListener(evt, function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          els.teacherDropZone.classList.remove("is-drag");
+        });
+      });
+      els.teacherDropZone.addEventListener("drop", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        els.teacherDropZone.classList.remove("is-drag");
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) setTeacherFile(f);
+      });
+    }
 
     // Detail actions
     els.detailActions.addEventListener("click", function (e) {
@@ -1718,7 +2552,7 @@
       });
     }
 
-    // Cohort passcode visibility
+    // Section code visibility
     if (els.codeToggle && els.codeInput) {
       els.codeToggle.addEventListener("click", function () {
         var show = els.codeInput.type === "password";
@@ -1770,11 +2604,12 @@
         openDetail(decodeURIComponent(href.slice(7)));
         return;
       }
-      if (href === "#couverture" || href === "#projets" || href === "#corpus") {
+      if (href === "#couverture" || href === "#projets" || href === "#corpus" || href === "#enseignant") {
         e.preventDefault();
         try { history.replaceState(null, "", href); } catch (_) { /* no-op */ }
         if (href === "#couverture") switchView("cover");
         else if (href === "#corpus") switchView("hub", { scrollTo: "corpus" });
+        else if (href === "#enseignant") switchView("hub", { scrollTo: "teacher" });
         else switchView("hub", { scrollTo: "top" });
       }
     });
@@ -1811,14 +2646,21 @@
       openDetail(decodeURIComponent(h.slice(7)));
     } else if (h === "#couverture") {
       switchView("cover", { animate: false });
-    } else if (h === "#projets" || h === "#corpus") {
-      switchView("hub", { animate: false, scrollTo: h === "#corpus" ? "corpus" : "top" });
+    } else if (h === "#projets" || h === "#corpus" || h === "#enseignant") {
+      switchView("hub", {
+        animate: false,
+        scrollTo: h === "#corpus" ? "corpus" : h === "#enseignant" ? "teacher" : "top"
+      });
     }
   }
 
   function init() {
     cacheElements();
+    cleanSlateLocal();
     loadLocal();
+    state.localAnnouncements = readLocalAnnouncements();
+    state.teacherCode = savedTeacherCode();
+    state.teacher = Boolean(state.teacherCode);
     state.viewMode = savedView();
 
     var storedLang = "fr";
@@ -1834,6 +2676,7 @@
 
     switchView("cover", { animate: false });
     renderCorpus();
+    renderTeacher();
     updateCloudUI();
     probeCloud(false);
 

@@ -1,132 +1,47 @@
 /**
- * GET  /api/projects?meta=1  → { ok, projects, storage }
- * POST /api/projects         → { ok, project }
- * POST /api/projects         → { ok }            when body is { verifyCode: true, code }
+ * GET    /api/projects?meta=1  → { ok, projects, storage }
+ * POST   /api/projects         → { ok, project }
+ * POST   /api/projects         → { ok } when body is { verifyCode: true, code }
+ * DELETE /api/projects         → { ok, removed } (owner token or teacher code)
  *
- * Storage is optional and auto-detected, in this order:
- *   1. Upstash Redis / Vercel KV  (KV_REST_API_URL + KV_REST_API_TOKEN)
- *   2. Supabase                   (SUPABASE_URL + SUPABASE_ANON_KEY)
- *   3. Vercel Blob index          (BLOB_READ_WRITE_TOKEN, JSON index)
+ * Owner rule (no password):
+ *   - every browser silently creates `atlas_owner_token` (crypto.randomUUID).
+ *   - only its SHA-256 hash is stored with the project (owner_hash).
+ *   - GET returns `owned: true` on projects matching the X-Atlas-Owner header.
+ *   - DELETE accepts the raw owner token (hash compared server-side) or the
+ *     teacher code. The associated Vercel Blob file is removed as well.
  *
- * With no storage configured the endpoint answers 501 so the portal
- * falls back to its local (localStorage) mode.
+ * Storage is optional and auto-detected (see api/_atlas.js). With no storage
+ * configured the endpoint answers 501 and the portal stays in local mode.
  */
-import { put, list } from "@vercel/blob";
+import {
+  LIMIT,
+  ALLOWED_MODULES,
+  ALLOWED_CATEGORIES,
+  SB_URL,
+  SB_KEY,
+  BLOB_TOKEN,
+  clean,
+  cleanList,
+  isHttpUrl,
+  isAllowedFileUrl,
+  baseName,
+  isOwnerHash,
+  sha256Hex,
+  parseBody,
+  dbKind,
+  storageInfo,
+  classAuthorized,
+  teacherAuthorized,
+  readCorpusStore,
+  writeCorpusStore,
+  deleteBlobFile,
+  ensureCleanSlate,
+} from "./_atlas.js";
 
 const TABLE = process.env.ATLAS_TABLE || "research_projects";
-const DEFAULT_CLASS_CODE = "M1-MEDEA-2026";
-const RAW_CLASS_CODE = String(process.env.ATLAS_CLASS_CODE == null ? "" : process.env.ATLAS_CLASS_CODE).trim();
-/* Set ATLAS_CLASS_CODE=off (or open/none) to publish without a passcode. */
-const CLASS_CODE = /^(off|open|none)$/i.test(RAW_CLASS_CODE) ? "" : RAW_CLASS_CODE || DEFAULT_CLASS_CODE;
-const BLOB_INDEX = "atlas/corpus.json";
-const KV_KEY = "atlas:corpus";
-const LIMIT = 500;
 
-const ALLOWED_FILE_EXT = /\.(pdf|pptx|png|jpe?g)$/i;
-
-const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || "";
-const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || "";
-const SB_URL = String(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/+$/, "");
-const SB_KEY =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "";
-const BLOB_TOKEN = process.env.BLOB_READ_WRITE_TOKEN || "";
-
-const ALLOWED_MODULES = ["SCF", "OUPTI", "SCF & OUPTI"];
-const ALLOWED_CATEGORIES = ["international", "algeria"];
-
-/* ---------- helpers ---------- */
-function clean(value, max) {
-  return String(value == null ? "" : value)
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim()
-    .slice(0, max);
-}
-
-function cleanList(value, maxItems, maxLength) {
-  if (!Array.isArray(value)) return [];
-  return value
-    .map((x) => clean(x, maxLength))
-    .filter(Boolean)
-    .slice(0, maxItems);
-}
-
-function isHttpUrl(value) {
-  return typeof value === "string" && /^https?:\/\/[^\s]+$/i.test(value);
-}
-
-function isAllowedFileUrl(value) {
-  if (!isHttpUrl(value)) return false;
-  try {
-    return ALLOWED_FILE_EXT.test(new URL(value).pathname);
-  } catch {
-    return false;
-  }
-}
-
-function baseName(value, max) {
-  return clean(String(value == null ? "" : value).split(/[\\/]/).pop(), max);
-}
-
-function dbKind() {
-  if (KV_URL && KV_TOKEN) return "kv";
-  if (SB_URL && SB_KEY) return "supabase";
-  if (BLOB_TOKEN) return "blob";
-  return "none";
-}
-
-function providerLabel(kind) {
-  if (kind === "kv") return "Upstash Redis / Vercel KV";
-  if (kind === "supabase") return "Supabase";
-  if (kind === "blob") return "Vercel Blob";
-  return "localStorage";
-}
-
-function storageInfo() {
-  const db = dbKind();
-  return {
-    db,
-    files: Boolean(BLOB_TOKEN),
-    provider: providerLabel(db),
-    requireCode: Boolean(CLASS_CODE),
-  };
-}
-
-async function kvCommand(command) {
-  const res = await fetch(KV_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${KV_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(command),
-    cache: "no-store",
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.error) {
-    throw new Error(data.error || `KV error ${res.status}`);
-  }
-  return data.result;
-}
-
-async function readKV() {
-  const raw = await kvCommand(["GET", KV_KEY]);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeKV(projects) {
-  await kvCommand(["SET", KV_KEY, JSON.stringify(projects)]);
-}
-
+/* ---------- row mapping ---------- */
 function fromRow(row) {
   return {
     id: row.id,
@@ -144,9 +59,33 @@ function fromRow(row) {
     featured: false,
     source: "cloud",
     createdAt: row.created_at || new Date().toISOString(),
+    ownerHash: row.owner_hash || "",
   };
 }
 
+/* Never leak owner hashes: expose a boolean instead. */
+function publicProject(project, requestHash) {
+  return {
+    id: project.id,
+    title: project.title,
+    city: project.city || "",
+    country: project.country || "",
+    authors: project.authors || "",
+    module: project.module || "SCF & OUPTI",
+    category: project.category || "international",
+    summary: project.summary || "",
+    keywords: Array.isArray(project.keywords) ? project.keywords : [],
+    link: project.link || "",
+    fileUrl: project.fileUrl || "",
+    fileName: project.fileName || "",
+    featured: false,
+    source: "cloud",
+    createdAt: project.createdAt || new Date().toISOString(),
+    owned: Boolean(requestHash && project.ownerHash && project.ownerHash === requestHash),
+  };
+}
+
+/* ---------- Supabase ---------- */
 async function readSupabase() {
   const url = `${SB_URL}/rest/v1/${encodeURIComponent(TABLE)}?select=*&order=created_at.desc&limit=${LIMIT}`;
   const res = await fetch(url, {
@@ -186,6 +125,7 @@ async function writeSupabase(project) {
       file_url: project.fileUrl || null,
       file_name: project.fileName || null,
       link: project.link || null,
+      owner_hash: project.ownerHash || null,
     }),
   });
   if (!res.ok) {
@@ -194,38 +134,27 @@ async function writeSupabase(project) {
   }
 }
 
-async function readBlob() {
-  const { blobs } = await list({ prefix: "atlas/", token: BLOB_TOKEN });
-  const target = (blobs || []).find((b) => b.pathname === BLOB_INDEX);
-  if (!target) return [];
-  const res = await fetch(target.url, { cache: "no-store" });
-  if (!res.ok) return [];
-  const data = await res.json().catch(() => null);
-  if (!data) return [];
-  return Array.isArray(data) ? data : Array.isArray(data.projects) ? data.projects : [];
-}
-
-async function writeBlob(projects) {
-  await put(BLOB_INDEX, JSON.stringify({ projects, updatedAt: new Date().toISOString() }), {
-    access: "public",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    contentType: "application/json",
-    token: BLOB_TOKEN,
+async function deleteSupabase(id) {
+  const url = `${SB_URL}/rest/v1/${encodeURIComponent(TABLE)}?id=eq.${encodeURIComponent(id)}`;
+  const res = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      apikey: SB_KEY,
+      Authorization: `Bearer ${SB_KEY}`,
+      Prefer: "return=minimal",
+    },
   });
+  if (!res.ok) throw new Error(`Supabase delete failed ${res.status}`);
 }
 
 async function readProjects(kind) {
-  if (kind === "kv") return readKV();
   if (kind === "supabase") return readSupabase();
-  if (kind === "blob") return readBlob();
-  return [];
+  return readCorpusStore(kind);
 }
 
 async function writeProjects(kind, projects) {
-  if (kind === "kv") return writeKV(projects);
-  if (kind === "supabase") return; // insert handled per project
-  if (kind === "blob") return writeBlob(projects);
+  if (kind === "supabase") return; // row writes handled per project
+  return writeCorpusStore(kind, projects);
 }
 
 /* ---------- validation ---------- */
@@ -244,6 +173,7 @@ function normalizeProject(input) {
     link: isHttpUrl(p.link) ? String(p.link).slice(0, 600) : "",
     fileUrl: isAllowedFileUrl(p.fileUrl) ? String(p.fileUrl).slice(0, 800) : "",
     fileName: baseName(p.fileName, 160),
+    ownerHash: isOwnerHash(p.ownerHash) ? String(p.ownerHash).toLowerCase() : "",
     featured: false,
     source: "cloud",
     createdAt: new Date().toISOString(),
@@ -275,8 +205,16 @@ export default async function handler(req, res) {
       });
     }
     try {
+      // One-time purge of test data on the first request after deployment.
+      await ensureCleanSlate(kind);
+      const headerHash = String(req.headers["x-atlas-owner"] || "");
+      const requestHash = isOwnerHash(headerHash) ? headerHash.toLowerCase() : "";
       const projects = await readProjects(kind);
-      return res.status(200).json({ ok: true, projects, storage: storageInfo() });
+      return res.status(200).json({
+        ok: true,
+        projects: projects.map((p) => publicProject(p, requestHash)),
+        storage: storageInfo(),
+      });
     } catch (err) {
       console.error("[atlas] read failed", err);
       return res.status(500).json({ ok: false, error: "read-failed", storage: storageInfo() });
@@ -288,19 +226,16 @@ export default async function handler(req, res) {
       return res.status(501).json({ ok: false, error: "storage-not-configured", storage: storageInfo() });
     }
 
-    let body = req.body;
-    if (typeof body === "string") {
-      try { body = JSON.parse(body); } catch { body = null; }
-    }
-    if (!body || typeof body !== "object") {
+    let body = parseBody(req.body);
+    if (!body) {
       return res.status(400).json({ ok: false, error: "invalid-body" });
     }
 
-    if (CLASS_CODE && clean(body.code, 80) !== CLASS_CODE) {
+    if (!classAuthorized(body.code) && !teacherAuthorized(body.code)) {
       return res.status(401).json({ ok: false, error: "invalid-class-code" });
     }
 
-    // Lightweight preflight used before a Blob upload, so a bad cohort code
+    // Lightweight preflight used before a Blob upload, so a bad section code
     // fails with a clear message instead of a generic upload-token error.
     if (body.verifyCode === true) {
       return res.status(200).json({ ok: true, storage: storageInfo() });
@@ -319,13 +254,82 @@ export default async function handler(req, res) {
         const next = [project, ...current.filter((p) => p && p.id !== project.id)].slice(0, LIMIT);
         await writeProjects(kind, next);
       }
-      return res.status(201).json({ ok: true, project, storage: storageInfo() });
+      return res.status(201).json({
+        ok: true,
+        project: publicProject(project, project.ownerHash),
+        storage: storageInfo(),
+      });
     } catch (err) {
       console.error("[atlas] write failed", err);
       return res.status(500).json({ ok: false, error: "write-failed" });
     }
   }
 
-  res.setHeader("Allow", "GET, POST");
+  if (req.method === "DELETE") {
+    if (kind === "none") {
+      return res.status(501).json({ ok: false, error: "storage-not-configured", storage: storageInfo() });
+    }
+
+    const body = parseBody(req.body);
+    if (!body) {
+      return res.status(400).json({ ok: false, error: "invalid-body" });
+    }
+
+    const isTeacher = teacherAuthorized(body.code);
+
+    try {
+      await ensureCleanSlate(kind);
+
+      /* Teacher-only manual purge, useful if a test entry slips through. */
+      if (body.purge === true || body.purge === "tests") {
+        if (!isTeacher) {
+          return res.status(401).json({ ok: false, error: "invalid-teacher-code" });
+        }
+        const current = await readProjects(kind);
+        for (const project of current) {
+          await deleteBlobFile(project.fileUrl);
+        }
+        if (kind === "supabase") {
+          for (const project of current) await deleteSupabase(project.id);
+        } else {
+          await writeProjects(kind, []);
+        }
+        return res.status(200).json({ ok: true, removed: current.length });
+      }
+
+      const id = clean(body.id, 64);
+      if (!/^[A-Za-z0-9_-]{6,64}$/.test(id)) {
+        return res.status(400).json({ ok: false, error: "invalid-id" });
+      }
+
+      const current = await readProjects(kind);
+      const target = current.find((p) => p && p.id === id);
+      if (!target) {
+        return res.status(404).json({ ok: false, error: "not-found" });
+      }
+
+      let allowed = isTeacher;
+      if (!allowed && body.ownerToken) {
+        const hash = await sha256Hex(clean(body.ownerToken, 200));
+        allowed = Boolean(target.ownerHash) && target.ownerHash === hash;
+      }
+      if (!allowed) {
+        return res.status(403).json({ ok: false, error: "not-owner" });
+      }
+
+      await deleteBlobFile(target.fileUrl);
+      if (kind === "supabase") {
+        await deleteSupabase(id);
+      } else {
+        await writeProjects(kind, current.filter((p) => p && p.id !== id));
+      }
+      return res.status(200).json({ ok: true, removed: 1 });
+    } catch (err) {
+      console.error("[atlas] delete failed", err);
+      return res.status(500).json({ ok: false, error: "delete-failed" });
+    }
+  }
+
+  res.setHeader("Allow", "GET, POST, DELETE");
   return res.status(405).json({ ok: false, error: "method-not-allowed" });
 }
