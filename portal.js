@@ -95,121 +95,6 @@
     }
   ];
 
-  /* ---------- Teacher space — bundled course supports (10) ---------- */
-  var COURSE_SUPPORTS = [
-    {
-      id: "course-scf-frameworks",
-      kind: "resource",
-      title: "SCF — Cadres conceptuels de la ville intelligente",
-      body: "Frameworks, dimensions et grille de lecture comparative des modèles de smart city.",
-      fileUrl: "cours/01-scf-cadres-conceptuels.pdf",
-      fileName: "01-scf-cadres-conceptuels.pdf",
-      seeded: true,
-      createdAt: "2026-09-08T08:00:00.000Z"
-    },
-    {
-      id: "course-scf-iso",
-      kind: "resource",
-      title: "SCF — Indicateurs ISO 37120 / 37122",
-      body: "Méthode de lecture et d'usage des indicateurs de performance urbaine.",
-      fileUrl: "cours/02-scf-indicateurs-iso.pdf",
-      fileName: "02-scf-indicateurs-iso.pdf",
-      seeded: true,
-      createdAt: "2026-09-10T08:00:00.000Z"
-    },
-    {
-      id: "course-scf-governance",
-      kind: "resource",
-      title: "SCF — Gouvernance ouverte et données urbaines",
-      body: "Open data, budget participatif, plateformes citoyennes et évaluation de la maturité.",
-      fileUrl: "cours/03-scf-gouvernance-ouverte.pdf",
-      fileName: "03-scf-gouvernance-ouverte.pdf",
-      seeded: true,
-      createdAt: "2026-09-12T08:00:00.000Z"
-    },
-    {
-      id: "course-oupti-pdau",
-      kind: "resource",
-      title: "OUPTI — Diagnostic territorial et lecture PDAU",
-      body: "Armature urbaine, instruments de planification et lecture critique du PDAU.",
-      fileUrl: "cours/04-oupti-diagnostic-pdau.pdf",
-      fileName: "04-oupti-diagnostic-pdau.pdf",
-      seeded: true,
-      createdAt: "2026-09-14T08:00:00.000Z"
-    },
-    {
-      id: "course-oupti-sig",
-      kind: "resource",
-      title: "OUPTI — SIG et analyses spatiales appliquées",
-      body: "Projections, couches, requêtes spatiales et cartographie thématique.",
-      fileUrl: "cours/05-oupti-sig-analyse-spatiale.pdf",
-      fileName: "05-oupti-sig-analyse-spatiale.pdf",
-      seeded: true,
-      createdAt: "2026-09-16T08:00:00.000Z"
-    },
-    {
-      id: "course-oupti-mobility",
-      kind: "resource",
-      title: "OUPTI — Mobilité multimodale et transport intelligent",
-      body: "Diagnostic des déplacements, intermodalité, ITS et indicateurs d'accessibilité.",
-      fileUrl: "cours/06-oupti-mobilite-multimodale.pdf",
-      fileName: "06-oupti-mobilite-multimodale.pdf",
-      seeded: true,
-      createdAt: "2026-09-18T08:00:00.000Z"
-    },
-    {
-      id: "course-oupti-energy",
-      kind: "resource",
-      title: "OUPTI — Énergie, réseaux et ville bas carbone",
-      body: "Réseaux intelligents, efficacité énergétique et trajectoires de décarbonation.",
-      fileUrl: "cours/07-oupti-energie-reseaux.pdf",
-      fileName: "07-oupti-energie-reseaux.pdf",
-      seeded: true,
-      createdAt: "2026-09-20T08:00:00.000Z"
-    },
-    {
-      id: "course-oupti-circular",
-      kind: "resource",
-      title: "OUPTI — Économie circulaire et gestion des déchets",
-      body: "Flux de matière, collecte, valorisation et indicateurs de circularité.",
-      fileUrl: "cours/08-oupti-economie-circulaire.pdf",
-      fileName: "08-oupti-economie-circulaire.pdf",
-      seeded: true,
-      createdAt: "2026-09-22T08:00:00.000Z"
-    },
-    {
-      id: "course-atelier-vienna",
-      kind: "resource",
-      title: "Atelier — Étude de cas Vienne (méthode)",
-      body: "Grille d'analyse appliquée à la trajectoire viennoise et à ses indicateurs.",
-      fileUrl: "cours/09-atelier-vienne.pdf",
-      fileName: "09-atelier-vienne.pdf",
-      seeded: true,
-      createdAt: "2026-09-24T08:00:00.000Z"
-    },
-    {
-      id: "course-atelier-boughezoul",
-      kind: "resource",
-      title: "Atelier — Étude de cas Boughezoul (méthode)",
-      body: "Diagnostic comparé Ksar El Boukhari × ville nouvelle de Boughezoul.",
-      fileUrl: "cours/10-atelier-boughezoul.pdf",
-      fileName: "10-atelier-boughezoul.pdf",
-      seeded: true,
-      createdAt: "2026-09-26T08:00:00.000Z"
-    }
-  ];
-
-  var SEED_ANNOUNCEMENTS = [
-    {
-      id: "prof-note-method",
-      kind: "remark",
-      title: "Note méthodologique — qualité des sources",
-      body: "Privilégier les sources primaires (PDAU, rapports municipaux, jeux de données ouverts) et justifier chaque indicateur mobilisé. Les comparaisons internationales doivent expliciter leur grille de lecture.",
-      seeded: true,
-      createdAt: "2026-09-28T09:00:00.000Z"
-    }
-  ];
-
   var T = {
     fr: {
       read: "Lire l’étude",
@@ -672,14 +557,39 @@
     }
   }
 
-  /* One-time local clean slate: drop test entries so the browser also starts
-     with only the two founding studies. */
+  /* One-time local clean slate: drop only the test entries left during
+     development, so the browser also starts from the two founding studies
+     without touching legitimate student publications. */
+  var TEST_TITLES = [
+    "test", "tests", "test 1", "test 2", "test 3", "mon test", "nouveau test",
+    "projet test", "etude test", "demo", "essai", "essai 1",
+    "barcelone", "barcelona"
+  ];
+
+  function isTestStudy(item) {
+    if (!item || typeof item !== "object") return false;
+    var title = norm(item.title).replace(/[^a-z0-9]+/g, " ").trim();
+    var authors = norm(item.authors).replace(/[^a-z0-9]+/g, " ").trim();
+    if (!title) return false;
+    if (TEST_TITLES.indexOf(title) !== -1) return true;
+    if (/^(test|tests|demo|essai)\b/.test(title) && title.split(" ").length <= 3) return true;
+    if (/^(test|demo|essai)$/.test(authors)) return true;
+    return false;
+  }
+
   function cleanSlateLocal() {
     try {
       if (window.localStorage.getItem(LS_CLEAN)) return;
-      window.localStorage.removeItem(LS_CORPUS);
-      window.localStorage.removeItem(LS_TEACHER_FEED);
-      window.localStorage.removeItem(LS_TEACHER_HIDDEN);
+      var kept = [];
+      try {
+        var raw = window.localStorage.getItem(LS_CORPUS);
+        var parsed = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) {
+          kept = parsed.filter(function (p) { return p && p.id && !isTestStudy(p); });
+        }
+      } catch (_) { kept = []; }
+      if (kept.length) window.localStorage.setItem(LS_CORPUS, JSON.stringify(kept));
+      else window.localStorage.removeItem(LS_CORPUS);
       window.localStorage.setItem(LS_CLEAN, new Date().toISOString());
     } catch (_) { /* private mode */ }
   }
@@ -700,6 +610,8 @@
   function canDeleteProject(raw) {
     if (!raw) return false;
     if (raw.source === "seed") return false;
+    // Local copies live only in this browser: the visitor owns them.
+    if (raw.source === "local" || state.local.some(function (p) { return p.id === raw.id; })) return true;
     if (state.teacher) return true;
     if (raw.owned === true) return true;
     if (raw.ownerHash && state.ownerHash && String(raw.ownerHash).toLowerCase() === state.ownerHash) return true;
@@ -753,18 +665,10 @@
     };
     state.localAnnouncements.forEach(push);
     state.announcements.forEach(push);
-    SEED_ANNOUNCEMENTS.forEach(push);
-    COURSE_SUPPORTS.forEach(push);
     out.sort(function (a, b) {
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
     return out;
-  }
-
-  function visibleCourses() {
-    return allTeacherItems().filter(function (a) {
-      return a.kind === "resource" && a.fileUrl;
-    });
   }
 
   function latestTeacherNote() {
@@ -1236,7 +1140,7 @@
       var res = await fetch("api/projects?meta=1", {
         headers: {
           Accept: "application/json",
-          "X-Atlas-Owner": state.ownerHash || ""
+          "X-Atlas-Owner": ownerToken() || ""
         },
         cache: "no-store"
       });
@@ -1524,7 +1428,7 @@
           var res = await fetch("api/projects", {
             method: "POST",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ project: project, code: code })
+            body: JSON.stringify({ project: project, code: code, ownerToken: ownerToken() })
           });
           var data = await res.json().catch(function () { return {}; });
           if (!res.ok || !data || data.ok !== true) {
@@ -1641,30 +1545,7 @@
 
   function renderTeacher() {
     if (!els.teacherFeed) return;
-    var courses = visibleCourses();
     var items = allTeacherItems().filter(function (a) { return a.kind !== "resource"; });
-
-    if (els.teacherCourseCount) els.teacherCourseCount.textContent = String(courses.length);
-    if (els.teacherCourseList) {
-      els.teacherCourseList.innerHTML = courses.length
-        ? courses.map(function (c, i) {
-            var remove = state.teacher
-              ? '<button class="course-row__delete" type="button" data-teacher-delete="' + esc(c.id) + '" aria-label="' + esc(t("delete")) + '" title="' + esc(t("delete")) + '">' + icons("trash") + '</button>'
-              : "";
-            return (
-              '<li class="course-row">' +
-                '<a class="course-row__link" href="' + esc(c.fileUrl) + '" download="' + esc(c.fileName || "") + '" target="_blank" rel="noopener">' +
-                  '<span class="course-row__no">' + pad(i + 1) + '</span>' +
-                  '<span class="course-row__title">' + esc(c.title) + '</span>' +
-                  '<span class="course-row__ext">PDF</span>' +
-                  icons("download") +
-                '</a>' +
-                remove +
-              '</li>'
-            );
-          }).join("")
-        : '<li class="course-row course-row--empty">' + esc(t("teacherLastNoteEmpty")) + "</li>";
-    }
 
     if (els.teacherFeed) {
       els.teacherFeed.innerHTML = items.map(function (item) {
@@ -2021,10 +1902,6 @@
       if (els.coverView) els.coverView.hidden = target !== "cover";
       if (els.hubView) els.hubView.hidden = target !== "hub";
       els.app.setAttribute("data-view", target);
-      if (els.canvas) {
-        els.canvas.style.opacity = target === "cover" ? "1" : "0";
-        els.canvas.style.visibility = target === "cover" ? "visible" : "hidden";
-      }
       document.body.classList.toggle("view-hub", target === "hub");
       if (opts.scrollTo === "corpus") {
         scrollToSection(els.hubToolbar);
@@ -2062,98 +1939,43 @@
     if (els.hubNav) els.hubNav.classList.toggle("is-scrolled", window.pageYOffset > 8);
   }
 
-  /* ---------- Cover canvas ---------- */
-  function initCanvas() {
-    var canvas = els.canvas;
-    if (!canvas || reducedMotion) return;
-    var ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    var dots = [];
-    var w = 0;
-    var h = 0;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  /* ---------- Ambient pointer halo ----------
+     Very soft warm light that follows the pointer. No grid, no canvas,
+     no geometric pattern: see .ambient in portal.css. */
+  function initAmbient() {
+    var ambient = document.getElementById("ambient");
+    if (!ambient || reducedMotion) return;
+    var x = window.innerWidth / 2;
+    var y = window.innerHeight * 0.38;
+    var tx = x;
+    var ty = y;
     var raf = null;
 
-    function resize() {
-      w = window.innerWidth;
-      h = window.innerHeight;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = w + "px";
-      canvas.style.height = h + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      var count = Math.round(Math.min(58, Math.max(24, (w * h) / 30000)));
-      dots = [];
-      for (var i = 0; i < count; i++) {
-        dots.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.18,
-          vy: (Math.random() - 0.5) * 0.18,
-          r: 0.7 + Math.random() * 1.5,
-          amber: Math.random() < 0.28
-        });
-      }
-    }
-
-    function step() {
-      ctx.clearRect(0, 0, w, h);
-      var i, j, a, b, dx, dy, dist;
-      for (i = 0; i < dots.length; i++) {
-        a = dots[i];
-        a.x += a.vx;
-        a.y += a.vy;
-        if (a.x < -20) a.x = w + 20;
-        if (a.x > w + 20) a.x = -20;
-        if (a.y < -20) a.y = h + 20;
-        if (a.y > h + 20) a.y = -20;
-      }
-      for (i = 0; i < dots.length; i++) {
-        a = dots[i];
-        for (j = i + 1; j < dots.length; j++) {
-          b = dots[j];
-          dx = a.x - b.x;
-          dy = a.y - b.y;
-          dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 140) {
-            ctx.strokeStyle = "rgba(17,22,29," + (0.1 * (1 - dist / 140)).toFixed(3) + ")";
-            ctx.lineWidth = 0.6;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-        ctx.beginPath();
-        ctx.fillStyle = a.amber ? "rgba(192,138,69,0.55)" : "rgba(17,22,29,0.28)";
-        ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      raf = window.requestAnimationFrame(step);
-    }
-
-    function start() {
-      if (raf != null) return;
-      step();
-    }
-    function stop() {
-      if (raf == null) return;
-      window.cancelAnimationFrame(raf);
+    function apply() {
       raf = null;
+      x += (tx - x) * 0.12;
+      y += (ty - y) * 0.12;
+      ambient.style.setProperty("--cursor-x", x.toFixed(1) + "px");
+      ambient.style.setProperty("--cursor-y", y.toFixed(1) + "px");
+      if (Math.abs(tx - x) > 0.6 || Math.abs(ty - y) > 0.6) {
+        raf = window.requestAnimationFrame(apply);
+      }
     }
 
-    resize();
-    start();
-    window.addEventListener("resize", function () {
-      resize();
-    }, { passive: true });
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden || state.view !== "cover") stop();
-      else start();
+    function onMove(e) {
+      if (e.pointerType === "touch") return;
+      tx = e.clientX;
+      ty = e.clientY;
+      ambient.classList.add("is-pointer");
+      if (raf == null) raf = window.requestAnimationFrame(apply);
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", function () {
+      ambient.classList.remove("is-pointer");
     });
-    window.addEventListener("atlas:view", function (e) {
-      if (e.detail === "cover") start();
-      else stop();
+    window.addEventListener("blur", function () {
+      ambient.classList.remove("is-pointer");
     });
   }
 
@@ -2162,7 +1984,6 @@
     els.app = document.getElementById("app");
     els.coverView = document.getElementById("coverView");
     els.hubView = document.getElementById("hubView");
-    els.canvas = document.getElementById("coverCanvas");
     els.veil = document.getElementById("pageVeil");
     els.coverCount = document.getElementById("coverCount");
     els.coverFloatCount = document.getElementById("coverFloatCount");
@@ -2669,7 +2490,7 @@
 
     if (els.sort) els.sort.value = state.sort;
     bindEvents();
-    initCanvas();
+    initAmbient();
 
     var year = document.getElementById("year");
     if (year) year.textContent = String(new Date().getFullYear());
@@ -2685,15 +2506,6 @@
       window.setTimeout(routeFromHash, 80);
     }
   }
-
-  // Announce view changes for the canvas loop.
-  var originalSwitch = switchView;
-  switchView = function (view, opts) {
-    originalSwitch(view, opts);
-    try {
-      window.dispatchEvent(new CustomEvent("atlas:view", { detail: view === "hub" ? "hub" : "cover" }));
-    } catch (_) { /* no-op */ }
-  };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

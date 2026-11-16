@@ -25,10 +25,10 @@ Le site est un ensemble de pages statiques (HTML/CSS/JS) avec des fonctions serv
 - **Recherche, filtres et pagination** : recherche instantanée, filtres par domaine/module, 9/12/24 travaux par page.
 - **Bilingue FR/AR** : couverture, cartes, index, pagination, modales et messages.
 - **Suppression par l'auteur** : chaque navigateur reçoit un jeton anonyme (`atlas_owner_token`). Seul le navigateur qui a publié un travail voit « Supprimer » ; le serveur vérifie le hachage SHA-256 du jeton avant de supprimer la fiche et son fichier Blob.
-- **Espace enseignant** : accès avec le code enseignant (`ATLAS_TEACHER_CODE`, `PROF-MEDEA-2026` par défaut). Il peut publier ou supprimer des supports de cours, des annonces et des notes sur un travail, et supprimer n'importe quelle fiche.
+- **Espace enseignant** : accès avec le code enseignant (`TEACHER_CODE`, `PROF-MEDEA-2026` par défaut). Il peut publier ou supprimer des supports de cours, des annonces et des notes sur un travail, et supprimer n'importe quelle fiche.
 - **Dépôt protégé** : code de section (`ATLAS_CLASS_CODE`, `M1-MEDEA-2026` par défaut), fichiers limités à PDF, PPTX, PNG, JPG/JPEG (20 Mo) et renommés avec un UUID aléatoire.
 - **Stockage optionnel** : local (`localStorage`) ou synchronisé via Vercel Blob / KV / Supabase.
-- **Mise à zéro unique** : au premier appel API après déploiement, les anciennes données de test et fichiers Blob sont purgés une seule fois (marqueur `atlas:clean-slate:v1` / `atlas/clean-slate.json`).
+- **Nettoyage des tests** : au premier appel API après déploiement, les fiches de test reconnaissables (titres exacts `test`, `demo`, `essai`, `barcelone`, etc.) et leurs fichiers Blob sont supprimés une seule fois (marqueur `atlas:clean-slate:v1` / `atlas/clean-slate.json`). Les travaux légitimes et les deux études fondatrices ne sont jamais touchés.
 
 ## Démarrage local
 
@@ -58,7 +58,7 @@ npm run dev:vercel
    - ou Supabase → exécuter `supabase/schema.sql`, puis renseigner `SUPABASE_URL` + `SUPABASE_ANON_KEY`.
 3. Redéployer. Le portail détecte automatiquement le stockage via `GET /api/projects` et bascule du mode local au mode synchronisé.
 
-Variables disponibles : voir `.env.example`. `ATLAS_CLASS_CODE` protège les dépôts et les uploads (valeur par défaut : `M1-MEDEA-2026` ; `off` pour ouvrir le portail). `ATLAS_TEACHER_CODE` ouvre l'espace enseignant (valeur par défaut : `PROF-MEDEA-2026`). En mode local/démo, les mêmes codes sont vérifiés côté navigateur via `LOCAL_CLASS_CODE` et `LOCAL_TEACHER_CODE` dans `portal.js` — il s'agit d'un garde-fou pédagogique, l'application réelle est assurée côté serveur.
+Variables disponibles : voir `.env.example`. `ATLAS_CLASS_CODE` protège les dépôts et les uploads (valeur par défaut : `M1-MEDEA-2026` ; `off` pour ouvrir le portail). `TEACHER_CODE` (alias `ATLAS_TEACHER_CODE`) ouvre l'espace enseignant (valeur par défaut : `PROF-MEDEA-2026`). En mode local/démo, les mêmes codes sont vérifiés côté navigateur via `LOCAL_CLASS_CODE` et `LOCAL_TEACHER_CODE` dans `portal.js` — il s'agit d'un garde-fou pédagogique, l'application réelle est assurée côté serveur.
 
 ## Vérifications
 

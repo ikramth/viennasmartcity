@@ -6,10 +6,11 @@
  *   2. Supabase                   (SUPABASE_URL + SUPABASE_ANON_KEY)
  *   3. Vercel Blob index          (BLOB_READ_WRITE_TOKEN, JSON index)
  *
- * The first request after a deployment performs a one-time clean slate:
- * every cloud test project / file is removed so the corpus starts with the
- * two founding studies (which live in the browser, in portal.js).
- * A marker (KV key or Blob file) guarantees the purge runs exactly once.
+ * The first request after a deployment performs a one-time cleanup of the
+ * test projects left in cloud storage (strict test titles only) and deletes
+ * their Vercel Blob files. The two founding studies live in the browser
+ * (portal.js) and are never stored in the cloud. A marker (KV key or Blob
+ * file) guarantees the cleanup runs exactly once.
  */
 import { put, list, del } from "@vercel/blob";
 
@@ -22,8 +23,8 @@ export const DEFAULT_TEACHER_CODE = "PROF-MEDEA-2026";
 const RAW_CLASS_CODE = String(process.env.ATLAS_CLASS_CODE == null ? "" : process.env.ATLAS_CLASS_CODE).trim();
 export const CLASS_CODE = /^(off|open|none)$/i.test(RAW_CLASS_CODE) ? "" : RAW_CLASS_CODE || DEFAULT_CLASS_CODE;
 
-/* Set ATLAS_TEACHER_CODE=off to disable the teacher space entirely. */
-const RAW_TEACHER_CODE = String(process.env.ATLAS_TEACHER_CODE == null ? "" : process.env.ATLAS_TEACHER_CODE).trim();
+/* Set TEACHER_CODE=off (or ATLAS_TEACHER_CODE=off) to disable the teacher space. */
+const RAW_TEACHER_CODE = String(process.env.TEACHER_CODE || process.env.ATLAS_TEACHER_CODE || "").trim();
 export const TEACHER_CODE = /^(off|open|none)$/i.test(RAW_TEACHER_CODE) ? "" : RAW_TEACHER_CODE || DEFAULT_TEACHER_CODE;
 
 export const CORPUS_KEY = "atlas:corpus";
@@ -260,35 +261,53 @@ export async function deleteBlobFile(fileUrl) {
   }
 }
 
-async function deleteAtlasBlobs() {
-  if (!BLOB_TOKEN) return;
-  const { blobs } = await list({ prefix: "atlas/", token: BLOB_TOKEN });
-  const urls = (blobs || []).map((b) => b.url);
-  if (urls.length) await del(urls, { token: BLOB_TOKEN });
+/* ---------- one-time cleanup of test projects ---------- */
+const TEST_TITLES = new Set([
+  "test", "tests", "test 1", "test 2", "test 3", "mon test", "nouveau test",
+  "projet test", "etude test", "demo", "essai", "essai 1",
+  "barcelone", "barcelona",
+]);
+
+function normKey(value) {
+  return String(value == null ? "" : value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
-/* ---------- one-time clean slate ---------- */
+export function isTestProject(project) {
+  if (!project || typeof project !== "object") return false;
+  const title = normKey(project.title);
+  if (!title) return false;
+  const authors = normKey(project.authors);
+  if (TEST_TITLES.has(title)) return true;
+  const words = title.split(" ");
+  if (words.length <= 4 && words.includes("test")) return true;
+  if (/^(test|tests|demo|essai)\b/.test(title) && words.length <= 3) return true;
+  if (/^(test|demo|essai)$/.test(authors)) return true;
+  return false;
+}
+
 export async function ensureCleanSlate(kind) {
   if (kind !== "kv" && kind !== "blob") return false;
   try {
-    if (kind === "kv") {
-      if (await kvGet(RESET_KEY)) return false;
-      await kvDel(CORPUS_KEY);
-      await kvDel(TEACHER_KEY);
-      await deleteAtlasBlobs();
-      await kvSet(RESET_KEY, new Date().toISOString());
-      console.info("[atlas] clean slate: cloud test data removed");
-      return true;
+    // Run at most once per deployment/storage.
+    if (kind === "kv" && (await kvGet(RESET_KEY))) return false;
+    if (kind === "blob" && (await readBlobJson(RESET_BLOB, null))) return false;
+
+    const current = await readCorpusStore(kind);
+    const tests = current.filter(isTestProject);
+    if (tests.length) {
+      for (const project of tests) await deleteBlobFile(project.fileUrl);
+      await writeCorpusStore(kind, current.filter((p) => !isTestProject(p)));
+      console.info(`[atlas] clean slate: removed ${tests.length} test project(s)`);
     }
 
-    const { blobs } = await list({ prefix: "atlas/", token: BLOB_TOKEN });
-    const existing = blobs || [];
-    if (existing.some((b) => b.pathname === RESET_BLOB)) return false;
-    const urls = existing.filter((b) => b.pathname !== RESET_BLOB).map((b) => b.url);
-    if (urls.length) await del(urls, { token: BLOB_TOKEN });
-    await writeBlobJson(RESET_BLOB, { clearedAt: new Date().toISOString() });
-    console.info("[atlas] clean slate: blob test data removed");
-    return true;
+    if (kind === "kv") await kvSet(RESET_KEY, new Date().toISOString());
+    else await writeBlobJson(RESET_BLOB, { clearedAt: new Date().toISOString() });
+    return tests.length > 0;
   } catch (err) {
     // Never block the portal because a cleanup failed.
     console.error("[atlas] clean slate skipped", err);

@@ -207,8 +207,10 @@ export default async function handler(req, res) {
     try {
       // One-time purge of test data on the first request after deployment.
       await ensureCleanSlate(kind);
-      const headerHash = String(req.headers["x-atlas-owner"] || "");
-      const requestHash = isOwnerHash(headerHash) ? headerHash.toLowerCase() : "";
+      const ownerRaw = clean(req.headers["x-atlas-owner"] || "", 200);
+      const requestHash = ownerRaw
+        ? (isOwnerHash(ownerRaw) ? ownerRaw.toLowerCase() : await sha256Hex(ownerRaw))
+        : "";
       const projects = await readProjects(kind);
       return res.status(200).json({
         ok: true,
@@ -239,6 +241,13 @@ export default async function handler(req, res) {
     // fails with a clear message instead of a generic upload-token error.
     if (body.verifyCode === true) {
       return res.status(200).json({ ok: true, storage: storageInfo() });
+    }
+
+    // The browser sends its anonymous owner token; only the SHA-256 hash is
+    // stored with the project (the raw token never reaches the database).
+    const rawOwnerToken = clean(body.ownerToken, 200);
+    if (rawOwnerToken && body.project && typeof body.project === "object") {
+      body.project.ownerHash = await sha256Hex(rawOwnerToken);
     }
 
     const { project, errors } = normalizeProject(body.project);

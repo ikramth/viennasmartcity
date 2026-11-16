@@ -7,8 +7,7 @@
  * DELETE /api/announcements  → { ok, removed }             (teacher code required)
  *
  * Backed by KV / Blob / Supabase, using the same detection as api/projects.js.
- * The 10 founding course supports are bundled in portal.js and the `cours/`
- * folder; this endpoint only stores teacher additions and notes.
+ * This endpoint stores the teacher's notes and announcements only.
  */
 import {
   LIMIT,
